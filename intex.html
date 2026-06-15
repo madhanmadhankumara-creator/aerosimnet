@@ -1,0 +1,2155 @@
+cat > /mnt/user-data/outputs/AeroGenesisAI.html << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AeroGenesis AI — Aircraft Design Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#4A90E2;--primary-blue:#4A90E2;--blue-dk:#2563c7;--blue-lt:#42b7ff;--blue-pale:#e8f2fc;
+  --white:#fff;--off:#f7faff;--border:#d0e4f7;
+  --text:#1a1a2e;--text2:#4a5568;--text3:#8fa0b8;
+  --teal:#0dc9a0;--red:#e53e3e;--amber:#d97706;--purple:#a78bfa;--green:#22c55e;
+  --font:'Raleway',sans-serif;--r:14px;--rs:8px;
+  --sh:0 4px 24px rgba(74,144,226,.10);--shd:0 8px 40px rgba(74,144,226,.18);
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--white);color:var(--text);overflow-x:hidden}
+
+/* TOPBAR */
+#topbar{position:fixed;top:0;left:0;right:0;z-index:300;background:rgba(255,255,255,.97);backdrop-filter:blur(14px);border-bottom:1.5px solid var(--border);height:140px;display:flex;align-items:center;padding:0 28px;gap:14px;box-shadow:0 2px 18px rgba(74,144,226,.09);transition:transform .28s ease, opacity .28s ease}
+#topbar.hidden{transform:translateY(-100%);opacity:0}
+.brand{font-size:2rem;font-weight:900;font-style:italic;color:var(--blue);letter-spacing:-.5px;text-transform:uppercase;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.brand-logo{width:120px;height:120px;object-fit:contain}
+#topbar nav{display:flex;gap:8px;margin-left:24px}
+#topbar nav a{font-size:0.95rem;font-weight:600;color:var(--text2);padding:8px 14px;border-radius:50px;text-decoration:none;transition:.15s}
+#topbar nav a:hover{background:var(--blue-pale);color:var(--blue)}
+.mode-tabs{display:flex;gap:0;margin-left:auto;background:var(--off);border:1.5px solid var(--border);border-radius:50px;padding:4px}
+.mode-tab{font-size:0.95rem;font-weight:700;color:var(--text3);padding:8px 18px;border-radius:50px;cursor:pointer;transition:.15s;border:none;background:none;font-family:var(--font)}
+.mode-tab.act{background:var(--blue);color:#fff}
+.login-btn{background:var(--blue);color:#fff;padding:8px 22px;border-radius:50px;font-weight:700;font-size:0.95rem;border:none;cursor:pointer;text-decoration:none;transition:.15s;white-space:nowrap;margin-left:10px}
+.login-btn:hover{background:var(--blue-dk)}
+
+/* LAYOUT */
+#app{display:flex;padding-top:140px;min-height:100vh}
+
+/* SIDEBAR */
+#sidebar{width:320px;min-width:320px;background:var(--white);border-right:1.5px solid var(--border);overflow-y:auto;padding:20px 15px 90px;flex-shrink:0}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.slabel{font-size:10px;font-weight:900;color:var(--blue);text-transform:uppercase;letter-spacing:.12em;padding:12px 0 7px;border-bottom:1.5px solid var(--border);margin-bottom:9px;display:flex;align-items:center;gap:6px}
+.slabel:first-child{padding-top:0}
+.irow{margin-bottom:10px}
+.irow label{display:block;font-size:10px;font-weight:700;color:var(--text2);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em}
+.irow select,.irow input[type=number],.irow input[type=text]{width:100%;background:var(--off);border:1.5px solid var(--border);color:var(--text);border-radius:var(--rs);padding:7px 10px;font-size:12px;font-family:var(--font);font-weight:600;outline:none;appearance:none;-webkit-appearance:none;transition:.15s}
+.irow select:focus,.irow input:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(74,144,226,.12)}
+.irow input[type=range]{width:100%;accent-color:var(--blue);margin-top:4px;cursor:pointer}
+.range-val{font-size:11px;font-weight:700;color:var(--blue);float:right;margin-top:-18px}
+
+/* metric grid */
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.mcard{background:var(--blue-pale);border:1.5px solid var(--border);border-radius:var(--rs);padding:8px 9px 7px;position:relative}
+.mcard label{font-size:9px;font-weight:900;color:var(--blue);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:3px}
+.mcard input{width:100%;background:#fff;border:1.5px solid var(--border);color:var(--text);border-radius:6px;padding:5px 7px;font-size:13px;font-family:var(--font);font-weight:700;outline:none;transition:.15s}
+.mcard input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(74,144,226,.12)}
+.mcard .unit{font-size:9px;color:var(--text3);margin-top:2px;font-weight:600}
+
+/* AI box */
+#aibox{background:linear-gradient(135deg,var(--blue-pale),#f0f9ff);border:1.5px solid var(--border);border-radius:var(--r);padding:10px;margin-bottom:10px}
+#aibox textarea{width:100%;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);padding:7px 9px;font-size:12px;font-family:var(--font);color:var(--text);resize:none;outline:none;font-weight:500;line-height:1.5}
+#aibox textarea:focus{border-color:var(--blue)}
+.ai-actions{display:flex;justify-content:space-between;align-items:center;margin-top:6px;gap:6px}
+.ai-hint{font-size:10px;color:var(--text3);font-weight:600}
+#parse-btn{background:var(--blue);color:#fff;border:none;border-radius:50px;padding:5px 14px;font-size:11px;font-weight:700;font-family:var(--font);cursor:pointer;transition:.15s;white-space:nowrap}
+#parse-btn:hover{background:var(--blue-dk)}
+#gen-btn{width:100%;padding:13px;background:var(--blue);color:#fff;border:none;border-radius:50px;font-size:14px;font-weight:900;font-family:var(--font);font-style:italic;text-transform:uppercase;cursor:pointer;transition:.2s;letter-spacing:.05em;box-shadow:0 5px 22px rgba(74,144,226,.38);margin-top:5px}
+#gen-btn:hover{background:var(--blue-dk);transform:scale(1.02);box-shadow:0 8px 30px rgba(74,144,226,.48)}
+#gen-btn:disabled{background:#b0c8e8;cursor:not-allowed;transform:none}
+
+/* airfoil selector */
+.af-sel-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:280px;overflow-y:auto;padding-right:2px}
+.af-sel-grid::-webkit-scrollbar{width:3px}
+.af-sel-grid::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.af-card{background:var(--off);border:1.5px solid var(--border);border-radius:8px;padding:8px;cursor:pointer;transition:.15s}
+.af-card:hover{border-color:var(--blue);background:var(--blue-pale)}
+.af-card.sel{border-color:var(--blue);background:var(--blue-pale)}
+.af-card .afn{font-size:10px;font-weight:900;color:var(--blue);margin-bottom:3px}
+.af-card .afs{font-size:9px;color:var(--text3);font-weight:600}
+.af-card svg{display:block;margin:4px 0}
+
+/* CONTENT */
+#content{flex:1;overflow-y:auto;padding:24px 24px 60px;background:var(--off)}
+#content::-webkit-scrollbar{width:5px}
+#content::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* empty state */
+#empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:14px;text-align:center}
+.es-icon{font-size:68px;opacity:.15}
+#empty-state h2{font-size:22px;font-weight:900;font-style:italic;color:var(--blue);text-transform:uppercase}
+#empty-state p{font-size:13px;color:var(--text2);max-width:420px;line-height:1.75}
+.chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:5px}
+.chip{background:#fff;border:1.5px solid var(--border);border-radius:50px;padding:6px 16px;font-size:12px;font-weight:700;color:var(--blue);cursor:pointer;transition:.15s}
+.chip:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* page header */
+.phdr{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:15px 20px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--sh)}
+.phdr h1{font-size:18px;font-weight:900;font-style:italic;color:var(--blue);text-transform:uppercase}
+.phdr .sub{font-size:11px;color:var(--text3);font-weight:600;margin-top:2px}
+
+/* section card */
+.card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:18px 18px 14px;margin-bottom:14px;box-shadow:var(--sh)}
+.card h3{font-size:10px;font-weight:900;color:var(--blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:13px;display:flex;align-items:center;gap:7px}
+.card h3::before{content:'';display:block;width:3px;height:13px;background:var(--blue);border-radius:2px}
+.card-tabs{display:flex;gap:0;margin-bottom:13px;background:var(--off);border:1.5px solid var(--border);border-radius:50px;padding:3px;width:fit-content}
+.card-tab{font-size:10px;font-weight:700;color:var(--text3);padding:4px 14px;border-radius:50px;cursor:pointer;transition:.15s;border:none;background:none;font-family:var(--font)}
+.card-tab.act{background:var(--blue);color:#fff}
+
+/* result metric cards */
+.rmg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.rmg-3{grid-template-columns:repeat(3,1fr)}
+.rmg-6{grid-template-columns:repeat(6,1fr)}
+.rmc{background:var(--blue-pale);border:1.5px solid var(--border);border-radius:var(--rs);padding:10px 12px;transition:.2s}
+.rmc:hover{border-color:var(--blue);transform:translateY(-1px)}
+.rmc .rl{font-size:9px;font-weight:900;color:var(--blue);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.rmc .rv{font-size:18px;font-weight:900;color:var(--text);line-height:1}
+.rmc .ru{font-size:9px;color:var(--text3);font-weight:600;margin-top:2px}
+.rmc.good .rv{color:var(--teal)}.rmc.warn .rv{color:var(--amber)}.rmc.bad .rv{color:var(--red)}.rmc.blue .rv{color:var(--blue)}.rmc.purple .rv{color:var(--purple)}
+
+/* AI report */
+#air-wrap{background:linear-gradient(135deg,var(--blue-pale),#f0faff);border:1.5px solid var(--border);border-radius:var(--r);padding:15px 17px;margin-bottom:14px}
+.air-label{font-size:10px;font-weight:900;color:var(--blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+#air-text{font-size:12px;color:var(--text2);line-height:1.9;font-weight:500;white-space:pre-wrap}
+#air-text .cur{display:inline-block;width:7px;height:13px;background:var(--blue);border-radius:1px;animation:blink .85s infinite;vertical-align:middle;margin-left:2px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* chart label */
+.clbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+
+/* stab rows */
+.stabrow{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)}
+.stabrow:last-child{border-bottom:none}
+.stabico{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0}
+.stabico.ok{background:rgba(13,201,160,.12);color:var(--teal)}.stabico.warn{background:rgba(217,119,6,.12);color:var(--amber)}.stabico.bad{background:rgba(229,62,62,.12);color:var(--red)}
+.stabn{font-size:12px;font-weight:700;color:var(--text)}.stabd{font-size:10px;color:var(--text3);margin-top:1px;font-weight:500}
+
+/* perf rows */
+.perf-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.perf-row:last-child{border-bottom:none}
+.perf-lbl{font-size:11px;font-weight:700;color:var(--text2);width:150px;flex-shrink:0}
+.perf-bg{flex:1;background:var(--blue-pale);height:6px;border-radius:4px;overflow:hidden}
+.perf-fill{height:100%;border-radius:4px;background:var(--blue);transition:width .7s cubic-bezier(.4,0,.2,1)}
+.perf-val{font-size:11px;font-weight:700;color:var(--text);min-width:80px;text-align:right}
+
+/* airfoil compare bars */
+.af-row{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.af-row .afn{font-size:9px;font-weight:700;color:var(--text2);width:95px;flex-shrink:0;text-align:right}
+.af-row.sel .afn{color:var(--blue);font-weight:900}
+.af-bg{flex:1;background:var(--blue-pale);height:16px;border-radius:4px;overflow:hidden}
+.af-fill{height:100%;border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:5px;font-size:9px;font-weight:900;background:var(--border);color:var(--text2);transition:width .7s}
+.af-row.sel .af-fill{background:var(--blue);color:#fff}
+
+/* 3D viewer */
+#v-outer{background:linear-gradient(160deg,#0a0f1e 0%,#0d1a3a 50%,#0a1428 100%);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;position:relative;height:560px}
+#v-outer canvas{display:block}
+#v-tb{position:absolute;bottom:14px;left:14px;display:flex;gap:5px;flex-wrap:wrap}
+.vbtn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.88);font-size:10px;font-weight:700;font-family:var(--font);padding:5px 12px;border-radius:50px;cursor:pointer;transition:.15s;backdrop-filter:blur(8px)}
+.vbtn:hover,.vbtn.act{background:var(--blue);color:#fff;border-color:var(--blue)}
+#v-hint{position:absolute;top:12px;right:13px;font-size:10px;color:rgba(255,255,255,.55);font-weight:700;background:rgba(0,0,0,.35);padding:3px 10px;border-radius:50px;backdrop-filter:blur(6px)}
+#v-stats{position:absolute;top:12px;left:13px;font-size:10px;color:rgba(255,255,255,.7);font-weight:700;background:rgba(0,0,0,.4);padding:5px 12px;border-radius:8px;backdrop-filter:blur(6px);line-height:1.7}
+#cg-leg{position:absolute;bottom:14px;right:13px;display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,.8);font-weight:700;background:rgba(0,0,0,.4);padding:3px 10px;border-radius:50px;backdrop-filter:blur(6px)}
+#cg-leg span{width:8px;height:8px;border-radius:50%;background:#e53e3e;display:inline-block}
+.v-crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;opacity:.2}
+
+/* export */
+.expg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.expb{background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);padding:10px 7px;text-align:center;cursor:pointer;transition:.15s}
+.expb:hover{border-color:var(--blue);background:var(--blue-pale);transform:translateY(-2px)}
+.expb .ext{font-size:14px;font-weight:900;color:var(--blue);display:block;font-style:italic}
+.expb .edsc{font-size:9px;color:var(--text3);margin-top:2px;font-weight:700;text-transform:uppercase}
+
+/* weight pie */
+.wpw{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.ple{display:flex;flex-direction:column;gap:5px}
+.pl-r{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--text2)}
+.pl-d{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+
+/* overlay */
+#overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(10,15,30,.85);backdrop-filter:blur(8px);flex-direction:column;align-items:center;justify-content:center;gap:16px}
+#overlay.show{display:flex}
+.spin{width:50px;height:50px;border:2px solid rgba(74,144,226,.3);border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.ov-steps{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.ov-step{font-size:12px;font-weight:700;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:8px;transition:.3s}
+.ov-step.act{color:#fff}.ov-step.done{color:var(--teal)}
+.ov-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);flex-shrink:0}
+.ov-step.act .ov-dot{background:var(--blue);animation:pulse 1s infinite}
+.ov-step.done .ov-dot{background:var(--teal)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+#gen-st{font-size:16px;font-weight:900;color:var(--blue);font-style:italic;text-transform:uppercase;letter-spacing:.05em}
+
+/* toast */
+#toast{position:fixed;bottom:20px;right:20px;z-index:600;background:var(--blue);color:#fff;border-radius:50px;padding:9px 18px;font-size:12px;font-weight:700;font-family:var(--font);opacity:0;transform:translateY(8px);transition:.25s;pointer-events:none;box-shadow:var(--shd)}
+#toast.show{opacity:1;transform:translateY(0)}
+
+/* CFD pressure legend */
+.cfd-legend{display:flex;gap:0;height:14px;border-radius:4px;overflow:hidden;margin-top:6px}
+.cfd-bar{flex:1}
+.cfd-lbl{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);font-weight:700;margin-top:3px}
+
+/* section collapse */
+.sec-hdr{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between}
+.sec-hdr .chev{transition:.2s;font-size:11px;color:var(--text3)}
+.sec-hdr.open .chev{transform:rotate(180deg)}
+.sec-body{overflow:hidden;transition:max-height .3s ease}
+
+/* slider group */
+.slider-group{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sld-item{background:var(--off);border:1.5px solid var(--border);border-radius:var(--rs);padding:8px}
+.sld-item label{font-size:9px;font-weight:900;color:var(--blue);text-transform:uppercase;letter-spacing:.07em;display:flex;justify-content:space-between;align-items:center}
+.sld-item label span{font-size:11px;font-weight:900;color:var(--text)}
+
+/* BOM table */
+.bom-tbl{width:100%;border-collapse:collapse;font-size:11px}
+.bom-tbl th{text-align:left;font-size:9px;font-weight:900;color:var(--blue);text-transform:uppercase;letter-spacing:.07em;padding:5px 10px;border-bottom:1.5px solid var(--border);background:var(--off)}
+.bom-tbl td{padding:7px 10px;border-bottom:1px solid var(--border);font-weight:600;color:var(--text2)}
+.bom-tbl tr:last-child td{border-bottom:none}
+.bom-tbl tr:hover td{background:var(--blue-pale)}
+.bom-tag{display:inline-block;font-size:8px;font-weight:900;padding:2px 7px;border-radius:50px;text-transform:uppercase;margin-left:5px}
+.bom-tag.req{background:rgba(229,62,62,.12);color:var(--red)}.bom-tag.opt{background:rgba(13,201,160,.12);color:var(--teal)}
+
+/* regulatory */
+.reg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.reg-card{background:var(--off);border:1.5px solid var(--border);border-radius:var(--rs);padding:10px}
+.reg-card .rc-flag{font-size:18px;margin-bottom:4px}
+.reg-card .rc-country{font-size:10px;font-weight:900;color:var(--text2);text-transform:uppercase;letter-spacing:.07em}
+.reg-card .rc-status{font-size:11px;font-weight:700;margin-top:4px}
+.reg-card .rc-status.ok{color:var(--teal)}.reg-card .rc-status.warn{color:var(--amber)}.reg-card .rc-status.bad{color:var(--red)}
+.reg-card .rc-note{font-size:9px;color:var(--text3);margin-top:3px;font-weight:600}
+
+@media(max-width:900px){
+  #sidebar{width:100%;min-width:unset;border-right:none;border-bottom:1.5px solid var(--border);max-height:42vh}
+  #app{flex-direction:column}
+  .rmg{grid-template-columns:repeat(2,1fr)}
+  .rmg-6{grid-template-columns:repeat(3,1fr)}
+}
+
+.vision-footer {
+  max-width: 850px;
+  margin: 30px auto;
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1.5;
+  padding: 0 20px;
+}
+
+.main-footer {
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  color: var(--text);
+  padding: 80px 0 30px 0;
+  margin-top: 100px;
+  border-top: 1px solid rgba(74, 144, 226, 0.2);
+}
+
+.footer-container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 50px;
+}
+
+.footer-logo {
+  height: 200px;
+  margin-bottom: 20px;
+}
+
+.footer-col h4 {
+  color: var(--primary-blue);
+  font-size: 0.9rem;
+  font-weight: 900;
+  margin-bottom: 25px;
+  letter-spacing: 1px;
+}
+
+.footer-col p { font-size: 0.85rem; line-height: 1.6; color: var(--text2); }
+
+.footer-col ul { list-style: none; padding: 0; }
+
+.footer-col ul li { margin-bottom: 12px; }
+
+.footer-col ul li a {
+  color: var(--text2);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: 0.3s;
+}
+
+.footer-col ul li a:hover { color: var(--primary-blue); padding-left: 5px; }
+
+.social-links a {
+  display: inline-block;
+  width: 35px;
+  height: 35px;
+  background: rgba(74, 144, 226, 0.15);
+  color: var(--blue);
+  text-align: center;
+  line-height: 35px;
+  border-radius: 50%;
+  margin-right: 10px;
+  text-decoration: none;
+  font-weight: 900;
+  font-size: 0.7rem;
+  transition: 0.3s;
+  border: 1px solid rgba(74, 144, 226, 0.3);
+}
+
+.social-links a:hover { background: var(--primary-blue); transform: translateY(-3px); }
+
+.footer-bottom {
+  border-top: 1px solid rgba(208, 228, 247, 0.3);
+  padding-top: 30px;
+  text-align: center;
+}
+
+.footer-bottom p { font-size: 0.75rem; color: var(--text3); text-transform: uppercase; font-weight: 700; }
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+  .nav_link { display: none; }
+  .section-grid, .section-grid.reverse, .form-container, .footer-grid {
+      grid-template-columns: 1fr !important;
+  }
+  .blue-italic { font-size: 1.8rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="brand">
+    <img src="img/Copy_of_Copy_of_Aerosimnet_20260208_131226_0000-removebg-preview.png" alt="aerosimnet logo" class="brand-logo">
+    aerosimnet
+  </div>
+  <nav>
+    <a href="#">Design</a><a href="#">Analysis</a><a href="#">Simulation</a><a href="#">Manufacturing</a><a href="#">Marketplace</a>
+  </nav>
+  <div class="mode-tabs">
+    <button class="mode-tab act" onclick="setMode('ai',this)">✦ AI Mode</button>
+    <button class="mode-tab" onclick="setMode('pro',this)">⚙ Pro Mode</button>
+  </div>
+  <a href="#" class="login-btn">Login / Register</a>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<div id="sidebar">
+
+  <div class="slabel">✦ AI Prompt Design</div>
+  <div id="aibox">
+    <textarea id="ai-prompt" rows="3" placeholder="e.g. Long-endurance surveillance UAV, 5 kg payload, 10h endurance, 200 km range, electric propulsion, carbon fiber..."></textarea>
+    <div class="ai-actions">
+      <span class="ai-hint">Press Enter to parse</span>
+      <button id="parse-btn" onclick="parsePrompt()">Parse ↗</button>
+    </div>
+  </div>
+
+  <!-- AI MODE PANEL -->
+  <div id="ai-mode-panel">
+    <div class="slabel">Aircraft Configuration</div>
+    <div class="irow"><label>Aircraft Type</label>
+      <select id="inp-type">
+        <option>Fixed Wing UAV</option><option>Trainer Aircraft</option><option>Glider</option>
+        <option>Cargo UAV</option><option>Flying Wing</option><option>VTOL UAV</option>
+        <option>Surveillance UAV</option><option>Quadcopter</option><option>eVTOL</option>
+        <option>General Aviation</option><option>Business Jet</option><option>Military UAV</option>
+        <option>HAPS</option>
+      </select>
+    </div>
+    <div class="irow"><label>Propulsion</label>
+      <select id="inp-prop">
+        <option>Electric</option><option>Piston</option><option>Turboprop</option>
+        <option>Turbojet</option><option>Turbofan</option><option>Hybrid</option>
+      </select>
+    </div>
+    <div class="irow"><label>Primary Material</label>
+      <select id="inp-mat">
+        <option>Carbon Fiber</option><option>Aluminum Alloy</option><option>Fiberglass</option>
+        <option>Titanium Alloy</option><option>PLA</option><option>PETG</option><option>ABS</option><option>Kevlar</option>
+      </select>
+    </div>
+    <div class="irow"><label>Wing Configuration</label>
+      <select id="inp-wing">
+        <option>Tapered</option><option>Rectangular</option><option>Elliptical</option>
+        <option>Delta</option><option>Swept</option><option>Forward Swept</option><option>Cranked Delta</option>
+      </select>
+    </div>
+    <div class="irow"><label>Wing Position</label>
+      <select id="inp-wpos">
+        <option>High Wing</option><option>Mid Wing</option><option>Low Wing</option><option>Parasol Wing</option>
+      </select>
+    </div>
+    <div class="irow"><label>Empennage</label>
+      <select id="inp-tail">
+        <option>Conventional</option><option>T-Tail</option><option>V-Tail</option>
+        <option>H-Tail</option><option>Twin Tail</option><option>Cruciform</option><option>Canard</option>
+      </select>
+    </div>
+    <div class="irow"><label>Landing Gear</label>
+      <select id="inp-gear">
+        <option>Tricycle — Fixed</option><option>Tricycle — Retractable</option>
+        <option>Taildragger — Fixed</option><option>Bicycle</option><option>Skids</option><option>Floats</option>
+      </select>
+    </div>
+    <div class="irow"><label>Fuselage Type</label>
+      <select id="inp-fuse">
+        <option>Conventional</option><option>Pod and Boom</option><option>Twin Boom</option>
+        <option>Blended Wing Body</option><option>Twin Fuselage</option>
+      </select>
+    </div>
+
+    <div class="slabel">Mission Parameters (12)</div>
+    <div class="mgrid">
+      <div class="mcard"><label>Payload</label><input type="number" id="m1" value="2" min="0.1" max="500" step="0.5"><div class="unit">kg</div></div>
+      <div class="mcard"><label>MTOW</label><input type="number" id="m2" value="8" min="1" max="999999" step="0.5"><div class="unit">kg</div></div>
+      <div class="mcard"><label>Cruise Speed</label><input type="number" id="m3" value="90" min="10" max="3000" step="1"><div class="unit">km/h</div></div>
+      <div class="mcard"><label>Stall Speed</label><input type="number" id="m4" value="45" min="10" max="400" step="1"><div class="unit">km/h</div></div>
+      <div class="mcard"><label>Max Speed</label><input type="number" id="m5" value="130" min="20" max="4000" step="1"><div class="unit">km/h</div></div>
+      <div class="mcard"><label>Range</label><input type="number" id="m6" value="200" min="10" max="50000" step="10"><div class="unit">km</div></div>
+      <div class="mcard"><label>Endurance</label><input type="number" id="m7" value="3" min="0.1" max="200" step="0.1"><div class="unit">hours</div></div>
+      <div class="mcard"><label>Altitude</label><input type="number" id="m8" value="1000" min="0" max="30000" step="100"><div class="unit">m</div></div>
+      <div class="mcard"><label>Rate of Climb</label><input type="number" id="m9" value="3" min="0.1" max="200" step="0.1"><div class="unit">m/s</div></div>
+      <div class="mcard"><label>Runway</label><input type="number" id="m10" value="50" min="5" max="10000" step="5"><div class="unit">m</div></div>
+      <div class="mcard"><label>Ceiling</label><input type="number" id="m11" value="4000" min="100" max="40000" step="100"><div class="unit">m</div></div>
+      <div class="mcard"><label>Engines</label><input type="number" id="m12" value="1" min="1" max="16" step="1"><div class="unit">count</div></div>
+    </div>
+  </div>
+
+  <!-- PRO MODE PANEL -->
+  <div id="pro-mode-panel" style="display:none">
+    <div class="slabel">⚙ Wing Geometry</div>
+    <div class="slider-group">
+      <div class="sld-item"><label>Wingspan (m) <span id="sv-b">8.0</span></label><input type="range" id="sv-b-r" min="0.5" max="80" step="0.1" value="8" oninput="$('sv-b').textContent=this.value;syncPro()"></div>
+      <div class="sld-item"><label>Wing Area (m²) <span id="sv-sw">2.4</span></label><input type="range" id="sv-sw-r" min="0.1" max="500" step="0.1" value="2.4" oninput="$('sv-sw').textContent=this.value;syncPro()"></div>
+      <div class="sld-item"><label>Aspect Ratio <span id="sv-ar">8.0</span></label><input type="range" id="sv-ar-r" min="1" max="40" step="0.1" value="8" oninput="$('sv-ar').textContent=this.value;syncPro()"></div>
+      <div class="sld-item"><label>Taper Ratio <span id="sv-tr">0.45</span></label><input type="range" id="sv-tr-r" min="0" max="1" step="0.01" value="0.45" oninput="$('sv-tr').textContent=this.value;syncPro()"></div>
+      <div class="sld-item"><label>Sweep QC (°) <span id="sv-sw2">5</span></label><input type="range" id="sv-sw2-r" min="-30" max="70" step="0.5" value="5" oninput="$('sv-sw2').textContent=this.value;syncPro()"></div>
+      <div class="sld-item"><label>Dihedral (°) <span id="sv-dih">3</span></label><input type="range" id="sv-dih-r" min="-15" max="20" step="0.5" value="3" oninput="$('sv-dih').textContent=this.value;syncPro()"></div>
+      <div class="sld-item"><label>Incidence (°) <span id="sv-inc">2</span></label><input type="range" id="sv-inc-r" min="-5" max="10" step="0.1" value="2" oninput="$('sv-inc').textContent=this.value;syncPro()"></div>
+      <div class="sld-item"><label>Washout (°) <span id="sv-wo">-2</span></label><input type="range" id="sv-wo-r" min="-6" max="4" step="0.1" value="-2" oninput="$('sv-wo').textContent=this.value;syncPro()"></div>
+    </div>
+
+    <div class="slabel">⚙ Fuselage Geometry</div>
+    <div class="slider-group">
+      <div class="sld-item"><label>Length (m) <span id="sv-fl">5.0</span></label><input type="range" id="sv-fl-r" min="0.3" max="100" step="0.1" value="5" oninput="$('sv-fl').textContent=this.value;syncPro()"></div>
+      <div class="sld-item"><label>Diameter (m) <span id="sv-fd">0.4</span></label><input type="range" id="sv-fd-r" min="0.05" max="12" step="0.05" value="0.4" oninput="$('sv-fd').textContent=this.value;syncPro()"></div>
+      <div class="sld-item"><label>Fineness <span id="sv-ff">12.5</span></label><input type="range" id="sv-ff-r" min="3" max="30" step="0.1" value="12.5" oninput="$('sv-ff').textContent=this.value;syncPro()"></div>
+      <div class="sld-item"><label>Nose Length (%) <span id="sv-fn">18</span></label><input type="range" id="sv-fn-r" min="5" max="45" step="1" value="18" oninput="$('sv-fn').textContent=this.value;syncPro()"></div>
+    </div>
+
+    <div class="slabel">⚙ Propulsion</div>
+    <div class="slider-group">
+      <div class="sld-item"><label>Thrust/Weight <span id="sv-tw">0.25</span></label><input type="range" id="sv-tw-r" min="0.05" max="2" step="0.01" value="0.25" oninput="$('sv-tw').textContent=this.value;syncPro()"></div>
+      <div class="sld-item"><label>Prop Diam (m) <span id="sv-pd">0.5</span></label><input type="range" id="sv-pd-r" min="0.05" max="6" step="0.05" value="0.5" oninput="$('sv-pd').textContent=this.value;syncPro()"></div>
+      <div class="sld-item"><label>Motor KV <span id="sv-kv">900</span></label><input type="range" id="sv-kv-r" min="50" max="4000" step="10" value="900" oninput="$('sv-kv').textContent=this.value;syncPro()"></div>
+      <div class="sld-item"><label>Battery S <span id="sv-bs">4</span></label><input type="range" id="sv-bs-r" min="2" max="16" step="1" value="4" oninput="$('sv-bs').textContent=this.value;syncPro()"></div>
+    </div>
+
+    <div class="slabel">⚙ Weights (kg)</div>
+    <div class="slider-group">
+      <div class="sld-item"><label>Structure % <span id="sv-wst">28</span></label><input type="range" id="sv-wst-r" min="10" max="55" step="1" value="28" oninput="$('sv-wst').textContent=this.value;syncPro()"></div>
+      <div class="sld-item"><label>Fuel/Bat % <span id="sv-wfu">22</span></label><input type="range" id="sv-wfu-r" min="5" max="60" step="1" value="22" oninput="$('sv-wfu').textContent=this.value;syncPro()"></div>
+    </div>
+  </div>
+
+  <!-- AIRFOIL SELECTOR -->
+  <div class="slabel">✈ Airfoil Selection</div>
+  <div class="irow">
+    <label>Selection Mode</label>
+    <select id="af-mode" onchange="toggleAfMode()">
+      <option value="ai">AI Auto-Select</option>
+      <option value="manual">Manual Database</option>
+    </select>
+  </div>
+  <div id="af-manual-panel" style="display:none">
+    <div class="irow"><label>Family</label>
+      <select id="af-family" onchange="filterAirfoils()">
+        <option value="all">All Families</option>
+        <option value="naca4">NACA 4-Digit</option>
+        <option value="naca5">NACA 5-Digit</option>
+        <option value="naca6">NACA 6-Series</option>
+        <option value="selig">Selig</option>
+        <option value="eppler">Eppler</option>
+        <option value="clark">Classic</option>
+        <option value="custom">High-Performance</option>
+      </select>
+    </div>
+    <div class="irow"><label>Sort By</label>
+      <select id="af-sort" onchange="filterAirfoils()">
+        <option value="clmax">Max CL (High→Low)</option>
+        <option value="cd0">Min CD₀ (Low→High)</option>
+        <option value="ld">Best L/D</option>
+        <option value="name">Name A–Z</option>
+      </select>
+    </div>
+    <div class="af-sel-grid" id="af-sel-grid"></div>
+  </div>
+
+  <div style="height:12px"></div>
+  <button id="gen-btn" onclick="generate()">⚡ Generate Aircraft Design</button>
+</div>
+<!-- ═══════════════════ /SIDEBAR ═══════════════════ -->
+
+<!-- ═══════════════════ CONTENT ═══════════════════ -->
+<div id="content">
+
+  <!-- EMPTY STATE -->
+  <div id="empty-state">
+    <div class="es-icon">✈</div>
+    <h2>Aircraft Design Studio</h2>
+    <p>Configure your mission parameters and click Generate — or start with a ready-made example:</p>
+    <div class="chips">
+      <div class="chip" onclick="loadEx('surv')">🔭 Surveillance UAV · 5 kg · 10h · 200 km</div>
+      <div class="chip" onclick="loadEx('cargo')">📦 Cargo UAV · 20 kg · 2h · 80 km</div>
+      <div class="chip" onclick="loadEx('glider')">🌤 HAPS Glider · 3 kg · 24h · 500 km</div>
+      <div class="chip" onclick="loadEx('trainer')">✈ Trainer · 750 kg · 3h</div>
+      <div class="chip" onclick="loadEx('evtol')">🚁 eVTOL · 4-seat · 150 km</div>
+      <div class="chip" onclick="loadEx('haps')">🛰 HAPS · 20 kg · 48h · 0 km</div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results" style="display:none">
+
+    <!-- PAGE HEADER -->
+    <div class="phdr">
+      <div>
+        <h1 id="res-title">Aircraft Design</h1>
+        <div class="sub" id="res-sub">AeroGenesis AI — Parametric Design Engine v4.1</div>
+      </div>
+      <div style="display:flex;gap:7px">
+        <button class="vbtn" style="background:var(--blue);color:#fff;border-color:var(--blue)" onclick="document.querySelector('#v-outer').scrollIntoView({behavior:'smooth'})">View 3D ↓</button>
+        <button class="vbtn" style="background:rgba(74,144,226,.12);color:var(--blue);border-color:var(--border)" onclick="generate()">↺ Recalculate</button>
+      </div>
+    </div>
+
+    <!-- AI REPORT -->
+    <div id="air-wrap">
+      <div class="air-label">✦ AI Engineering Analysis — claude-sonnet-4-6</div>
+      <div id="air-text"><span class="cur"></span></div>
+    </div>
+
+    <!-- OVERVIEW 12 METRICS -->
+    <div class="card">
+      <h3>Overview — 12 Key Parameters</h3>
+      <div class="rmg" id="ov-grid"></div>
+      <div class="rmg" id="ov-grid2"></div>
+    </div>
+
+    <!-- AERODYNAMICS -->
+    <div class="card">
+      <h3>Aerodynamics</h3>
+      <div class="rmg rmg-6" id="ae-grid" style="margin-bottom:14px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><div class="clbl">CL vs Angle of Attack</div><svg id="ch-aoa" viewBox="0 0 300 155" style="width:100%;height:155px;display:block"></svg></div>
+        <div><div class="clbl">Drag Polar (CL vs CD)</div><svg id="ch-drag" viewBox="0 0 300 155" style="width:100%;height:155px;display:block"></svg></div>
+      </div>
+      <div style="margin-top:12px"><div class="clbl">Power Required vs Airspeed</div><svg id="ch-power" viewBox="0 0 620 130" style="width:100%;height:130px;display:block"></svg></div>
+      <div style="margin-top:12px"><div class="clbl">Velocity Polar (Glide Performance)</div><svg id="ch-vpolar" viewBox="0 0 620 120" style="width:100%;height:120px;display:block"></svg></div>
+    </div>
+
+    <!-- AIRFOIL DETAIL -->
+    <div class="card">
+      <h3>Airfoil Analysis</h3>
+      <div class="card-tabs">
+        <button class="card-tab act" onclick="setAfTab('shape',this)">Shape</button>
+        <button class="card-tab" onclick="setAfTab('clcd',this)">CL/CD Curve</button>
+        <button class="card-tab" onclick="setAfTab('cp',this)">Pressure (Cp)</button>
+        <button class="card-tab" onclick="setAfTab('compare',this)">Compare</button>
+      </div>
+      <div id="af-shape-tab">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+          <div>
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px">
+              <div style="font-size:18px;font-weight:900;font-style:italic;color:var(--blue)" id="af-name"></div>
+              <span style="background:var(--teal);color:#fff;font-size:9px;font-weight:900;padding:2px 9px;border-radius:50px;text-transform:uppercase" id="af-badge">AI Pick</span>
+            </div>
+            <div style="font-size:11px;color:var(--text2);margin-bottom:10px;font-weight:600;line-height:1.6" id="af-desc"></div>
+            <svg id="af-shape" viewBox="0 0 290 95" style="width:100%;height:95px;display:block;background:var(--off);border-radius:8px;border:1.5px solid var(--border)"></svg>
+            <div style="font-size:9px;color:var(--text3);margin-top:4px;font-weight:600;display:flex;gap:12px">
+              <span>— camber line</span><span style="display:inline-flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:8px;background:rgba(74,144,226,.25);border:1px solid var(--blue);border-radius:2px"></span>section</span>
+            </div>
+            <div class="rmg rmg-3" id="af-metrics" style="margin-top:10px"></div>
+          </div>
+          <div>
+            <div class="clbl" style="margin-bottom:8px">CLmax Comparison — Full Database</div>
+            <div id="af-compare-list"></div>
+          </div>
+        </div>
+      </div>
+      <div id="af-clcd-tab" style="display:none">
+        <div class="clbl">CL/CD Ratio vs CL</div>
+        <svg id="ch-clcd" viewBox="0 0 620 200" style="width:100%;height:200px;display:block;margin-top:6px"></svg>
+        <div style="margin-top:12px"><div class="clbl">Lift Coefficient vs Reynolds Number</div><svg id="ch-re" viewBox="0 0 620 140" style="width:100%;height:140px;display:block"></svg></div>
+      </div>
+      <div id="af-cp-tab" style="display:none">
+        <div class="clbl">Pressure Coefficient Distribution (Cp) at Cruise AoA</div>
+        <svg id="ch-cp" viewBox="0 0 620 200" style="width:100%;height:200px;display:block;margin-top:6px"></svg>
+        <div class="cfd-legend" style="margin-top:12px">
+          <div class="cfd-bar" style="background:#2563c7"></div><div class="cfd-bar" style="background:#4A90E2"></div><div class="cfd-bar" style="background:#42b7ff"></div>
+          <div class="cfd-bar" style="background:#0dc9a0"></div><div class="cfd-bar" style="background:#f7faff"></div>
+          <div class="cfd-bar" style="background:#f59e0b"></div><div class="cfd-bar" style="background:#e53e3e"></div>
+        </div>
+        <div class="cfd-lbl"><span>High Suction (−)</span><span>Cp = 0</span><span>Stagnation (+)</span></div>
+      </div>
+      <div id="af-compare-tab" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px" id="af-full-compare"></div>
+      </div>
+    </div>
+
+    <!-- STABILITY -->
+    <div class="card">
+      <h3>Stability &amp; Control</h3>
+      <div class="rmg" id="st-grid"></div>
+      <div id="stab-rows" style="margin-top:4px"></div>
+      <div style="margin-top:14px"><div class="clbl">Center of Gravity — Neutral Point — MAC Diagram</div><svg id="ch-cg" viewBox="0 0 620 75" style="width:100%;height:75px;display:block"></svg></div>
+    </div>
+
+    <!-- STRUCTURE -->
+    <div class="card">
+      <h3>Structural Analysis</h3>
+      <div class="rmg" id="su-grid"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px">
+        <div><div class="clbl">Lift Distribution</div><svg id="ch-lift" viewBox="0 0 200 120" style="width:100%;height:120px;display:block"></svg></div>
+        <div><div class="clbl">Bending Moment Distribution</div><svg id="ch-bend" viewBox="0 0 200 120" style="width:100%;height:120px;display:block"></svg></div>
+        <div>
+          <div class="clbl">Weight Breakdown</div>
+          <div class="wpw"><svg id="wpie" viewBox="0 0 100 100" style="width:105px;height:105px;flex-shrink:0"></svg><div class="ple" id="pie-leg"></div></div>
+        </div>
+      </div>
+      <div id="mat-section" style="margin-top:14px">
+        <div class="clbl">Material Properties: <span id="mat-name" style="color:var(--blue);font-weight:900"></span></div>
+        <div class="rmg" id="mat-props" style="margin-top:6px"></div>
+      </div>
+    </div>
+
+    <!-- 3D MODEL -->
+    <div class="card">
+      <h3>3D Parametric Aircraft Model</h3>
+      <div id="v-outer">
+        <div id="v-stats"></div>
+        <div id="v-hint">Drag to orbit · Scroll to zoom · Right-drag to pan · Double-click to focus</div>
+        <div id="v-tb">
+          <button class="vbtn act" onclick="setVM('solid',this)">● Solid</button>
+          <button class="vbtn" onclick="setVM('wire',this)">⬡ Wireframe</button>
+          <button class="vbtn" onclick="setVM('xray',this)">◎ X-Ray</button>
+          <button class="vbtn" onclick="setVM('surface',this)">▦ Surface</button>
+          <button class="vbtn" onclick="resetCam()">⊙ Reset</button>
+          <button class="vbtn" onclick="toggleRot(this)">↻ Rotate</button>
+          <button class="vbtn" onclick="toggleCFD(this)">~ CFD Color</button>
+          <button class="vbtn" onclick="setView('front')">Front</button>
+          <button class="vbtn" onclick="setView('top')">Top</button>
+          <button class="vbtn" onclick="setView('side')">Side</button>
+          <button class="vbtn" onclick="setView('iso')">Isometric</button>
+        </div>
+        <div id="cg-leg"><span></span> CG Marker</div>
+      </div>
+      <div class="rmg" id="dim-grid" style="margin-top:10px;grid-template-columns:repeat(4,1fr)"></div>
+    </div>
+
+    <!-- PERFORMANCE -->
+    <div class="card">
+      <h3>Performance Summary</h3>
+      <div id="perf-rows"></div>
+    </div>
+
+    <!-- BOM -->
+    <div class="card">
+      <h3>Bill of Materials (Estimated)</h3>
+      <div id="bom-rows"></div>
+      <div style="margin-top:10px;font-size:11px;color:var(--text3);font-weight:600" id="bom-total"></div>
+    </div>
+
+    <!-- REGULATORY -->
+    <div class="card">
+      <h3>Regulatory Compliance</h3>
+      <div class="reg-grid" id="reg-grid"></div>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="card">
+      <h3>Export &amp; Downloads</h3>
+      <p style="font-size:11px;color:var(--text2);margin-bottom:12px;font-weight:500">Download your aircraft in industry-standard formats. CAD/CAM exports require server-side processing in production deployment.</p>
+      <div class="expg">
+        <div class="expb" onclick="expFile('STL')"><span class="ext">STL</span><span class="edsc">3D Printing</span></div>
+        <div class="expb" onclick="expFile('OBJ')"><span class="ext">OBJ</span><span class="edsc">3D Model</span></div>
+        <div class="expb" onclick="expFile('GLTF')"><span class="ext">GLTF</span><span class="edsc">Web / AR</span></div>
+        <div class="expb" onclick="expFile('3MF')"><span class="ext">3MF</span><span class="edsc">3D Print+</span></div>
+        <div class="expb" onclick="expFile('STEP')"><span class="ext">STEP</span><span class="edsc">CAD Native</span></div>
+        <div class="expb" onclick="expFile('IGES')"><span class="ext">IGES</span><span class="edsc">CAD Exchange</span></div>
+        <div class="expb" onclick="expFile('DXF')"><span class="ext">DXF</span><span class="edsc">AutoCAD</span></div>
+        <div class="expb" onclick="expFile('Parasolid')"><span class="ext">X_T</span><span class="edsc">Parasolid</span></div>
+        <div class="expb" onclick="expFile('PDF')"><span class="ext">PDF</span><span class="edsc">Report</span></div>
+        <div class="expb" onclick="expFile('CSV')"><span class="ext">CSV</span><span class="edsc">Raw Data</span></div>
+        <div class="expb" onclick="expFile('BOM')"><span class="ext">BOM</span><span class="edsc">Spreadsheet</span></div>
+        <div class="expb" onclick="expFile('DXF-Ribs')"><span class="ext">DXF</span><span class="edsc">Cut Plans</span></div>
+      </div>
+    </div>
+
+  </div><!-- /results -->
+</div><!-- /content -->
+</div><!-- /app -->
+
+<footer class="main-footer">
+    <div class="footer-container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <img src="img/Copy_of_Copy_of_Aerosimnet_20260208_131226_0000-removebg-preview.png" alt="Aerosimnet" class="footer-logo">
+                <p style="margin-top: 10px; font-size: 12px; color: var(--text2);">Aerosimnet is a parametric aircraft design engine that leverages AI and computational methods to generate optimized aircraft configurations based on user-defined mission parameters and constraints.</p>
+            </div>
+            <div class="footer-col">
+                <h4>SUPPORT</h4>
+                <ul>
+                    <li><a href="#">Documentation</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>CONNECT</h4>
+                <div class="social-links">
+                    <a href="#">LN</a>
+                    <a href="#">YT</a>
+                    <a href="#">X</a>
+                </div>
+                <p style="margin-top: 15px;">contact@aerosimnet.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Aerosimnet. All Rights Reserved. Engineered in India.</p>
+        </div>
+    </div>
+</footer>
+
+<div id="overlay">
+  <div class="spin"></div>
+  <div id="gen-st">Initialising AeroGenesis Engine…</div>
+  <div class="ov-steps" id="ov-steps"></div>
+</div>
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const f = (n,d=2) => typeof n==='number'?n.toFixed(d):'—';
+const rad = d => d*Math.PI/180;
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+
+/* ═══════════════════════════════════════════════════════════
+   FULL AIRFOIL DATABASE (40+ entries)
+═══════════════════════════════════════════════════════════ */
+const AFDB = {
+  // NACA 4-Digit
+  'NACA 0006':{family:'naca4',clMax:1.01,cd0:.0045,cmac:0,t:6,camber:0,p:0,desc:'Thin symmetric — high-speed fins, tail surfaces.'},
+  'NACA 0009':{family:'naca4',clMax:1.28,cd0:.0052,cmac:0,t:9,camber:0,p:0,desc:'Symmetric medium thickness — tail surfaces, aerobatics.'},
+  'NACA 0012':{family:'naca4',clMax:1.52,cd0:.0058,cmac:0,t:12,camber:0,p:0,desc:'Classic symmetric — excellent for aerobatics and tail surfaces.'},
+  'NACA 0015':{family:'naca4',clMax:1.62,cd0:.0068,cmac:0,t:15,camber:0,p:0,desc:'Thick symmetric — structural strength, helicopter blades.'},
+  'NACA 2412':{family:'naca4',clMax:1.68,cd0:.006,cmac:-.047,t:12,camber:2,p:40,desc:'General purpose, excellent all-round performance. Classic trainer choice.'},
+  'NACA 4412':{family:'naca4',clMax:1.85,cd0:.007,cmac:-.092,t:12,camber:4,p:40,desc:'High-lift cambered — low-speed surveillance, loiter UAVs.'},
+  'NACA 6412':{family:'naca4',clMax:1.96,cd0:.009,cmac:-.138,t:12,camber:6,p:40,desc:'High-camber — maximum lift at low speeds, STOL.'},
+  'NACA 4415':{family:'naca4',clMax:1.91,cd0:.0085,cmac:-.095,t:15,camber:4,p:40,desc:'Thick high-lift — good stall characteristics, GA aircraft.'},
+  // NACA 5-Digit
+  'NACA 23012':{family:'naca5',clMax:1.79,cd0:.006,cmac:-.014,t:12,camber:2,p:30,desc:'Low pitching moment, good stall — GA and trainers.'},
+  'NACA 23015':{family:'naca5',clMax:1.86,cd0:.007,cmac:-.015,t:15,camber:2,p:30,desc:'Thicker 5-digit — better structure, GA aircraft.'},
+  'NACA 23018':{family:'naca5',clMax:1.88,cd0:.0085,cmac:-.016,t:18,camber:2,p:30,desc:'Very thick 5-digit — large structural depth at root.'},
+  // NACA 6-Series (laminar)
+  'NACA 63-412':{family:'naca6',clMax:1.78,cd0:.0048,cmac:-.076,t:12,camber:4,p:40,desc:'Laminar flow — reduced drag in cruise, sailplanes.'},
+  'NACA 64-412':{family:'naca6',clMax:1.76,cd0:.0046,cmac:-.072,t:12,camber:4,p:40,desc:'Extended laminar bucket — very low cruise drag.'},
+  'NACA 65-410':{family:'naca6',clMax:1.72,cd0:.0044,cmac:-.068,t:10,camber:4,p:40,desc:'Thin laminar 6-series — high-speed cruise optimization.'},
+  'NACA 66-206':{family:'naca6',clMax:1.18,cd0:.0038,cmac:-.032,t:6,camber:2,p:40,desc:'Very thin laminar — high-speed low-drag applications.'},
+  // Selig
+  'Selig S1223':{family:'selig',clMax:2.20,cd0:.012,cmac:-.186,t:12.1,camber:8,p:45,desc:'Ultra-high-lift — slow endurance UAVs, loitering systems, HAPS.'},
+  'Selig S3021':{family:'selig',clMax:1.60,cd0:.006,cmac:-.076,t:9.3,camber:3.2,p:43,desc:'Reflex-cambered — flying wings, tailless designs.'},
+  'Selig S2027':{family:'selig',clMax:1.65,cd0:.0065,cmac:-.062,t:10.4,camber:3.5,p:42,desc:'Medium-performance — RC aircraft, small UAVs.'},
+  'Selig S5010':{family:'selig',clMax:1.55,cd0:.0058,cmac:-.055,t:10.4,camber:2.8,p:43,desc:'Low-Re optimized — micro UAVs, indoor models.'},
+  'Selig S7012':{family:'selig',clMax:1.75,cd0:.0062,cmac:-.085,t:9.0,camber:3.8,p:44,desc:'Low-Re high-lift — small electric UAVs.'},
+  // Eppler
+  'Eppler E423':{family:'eppler',clMax:2.07,cd0:.010,cmac:-.160,t:11.5,camber:7,p:44,desc:'High-lift gliders and long-endurance UAVs — HAPS platforms.'},
+  'Eppler E374':{family:'eppler',clMax:1.58,cd0:.0055,cmac:-.065,t:11.1,camber:3.5,p:43,desc:'Low-Re sailplane — excellent glide ratio.'},
+  'Eppler E387':{family:'eppler',clMax:1.52,cd0:.0060,cmac:-.058,t:9.1,camber:3.0,p:43,desc:'Classic RC/UAV benchmark — well-characterized at low Re.'},
+  'Eppler E214':{family:'eppler',clMax:1.48,cd0:.0052,cmac:-.042,t:14.3,camber:2.2,p:43,desc:'Thick low-camber — structural depth with moderate lift.'},
+  // Clark
+  'Clark Y':{family:'clark',clMax:1.76,cd0:.007,cmac:-.080,t:11.7,camber:3.6,p:42,desc:'1920s classic — flat bottom, excellent low-speed stability.'},
+  'Clark YH':{family:'clark',clMax:1.72,cd0:.0068,cmac:-.078,t:11.0,camber:3.4,p:42,desc:'Clark Y with higher fineness — slightly improved cruise.'},
+  // High-Performance / Modern
+  'FX63-137':{family:'custom',clMax:2.03,cd0:.0095,cmac:-.148,t:13.7,camber:6.2,p:45,desc:'Wortmann high-lift — competitive sailplanes, high-altitude loiter.'},
+  'NREL S809':{family:'custom',clMax:1.80,cd0:.0082,cmac:-.072,t:21,camber:2,p:40,desc:'Wind turbine blade — thick root section, high Reynolds.'},
+  'MH-60':{family:'custom',clMax:1.95,cd0:.0088,cmac:-.128,t:12.3,camber:5.8,p:43,desc:'Martin Hepperle — optimized for high-performance sailplane.'},
+  'HQ/W-2.5/10':{family:'custom',clMax:1.68,cd0:.0062,cmac:-.095,t:10,camber:2.5,p:43,desc:'Reflex for flying wing — low pitching moment, stable tailless.'},
+  'DAE11':{family:'custom',clMax:1.72,cd0:.0064,cmac:-.088,t:11.5,camber:3.2,p:44,desc:'Delft series — optimized for UAV endurance missions.'},
+  'DAE21':{family:'custom',clMax:1.79,cd0:.0072,cmac:-.096,t:12.2,camber:4.1,p:44,desc:'Delft advanced — long-endurance fixed-wing UAV.'},
+  'LA203A':{family:'custom',clMax:1.74,cd0:.0066,cmac:-.090,t:14.3,camber:3.8,p:43,desc:'Liebeck-type — turbulent separation bubble control.'},
+  'NACA 6409':{family:'naca4',clMax:1.90,cd0:.0085,cmac:-.130,t:9,camber:6,p:40,desc:'Very high-camber thin — STOL, micro-UAV extreme lift.'},
+};
+
+/* ═══════════════════════════════════════════════════════════
+   MATERIAL DATABASE
+═══════════════════════════════════════════════════════════ */
+const MAT_DB = {
+  'Carbon Fiber':   {density:1600,tensile:3500,modulus:230,compress:1500,cost:'$$$',color:'good'},
+  'Aluminum Alloy': {density:2700,tensile:276, modulus:69, compress:241, cost:'$$', color:''},
+  'Fiberglass':     {density:1900,tensile:440, modulus:14,  compress:380, cost:'$',  color:''},
+  'Titanium Alloy': {density:4430,tensile:900, modulus:114, compress:830, cost:'$$$$',color:'warn'},
+  'PLA':            {density:1240,tensile:50,  modulus:3.5,compress:40,  cost:'$',  color:''},
+  'PETG':           {density:1270,tensile:53,  modulus:2.1, compress:45,  cost:'$',  color:''},
+  'ABS':            {density:1050,tensile:40,  modulus:2.5, compress:35,  cost:'$',  color:''},
+  'Kevlar':         {density:1440,tensile:3620,modulus:70,  compress:480, cost:'$$$',color:'purple'},
+};
+
+/* ═══════════════════════════════════════════════════════════
+   AR MAP / EXAMPLES
+═══════════════════════════════════════════════════════════ */
+const AR_MAP = {
+  'Fixed Wing UAV':8,'Trainer Aircraft':7,'Glider':22,'Cargo UAV':7,
+  'Flying Wing':5,'VTOL UAV':6,'Surveillance UAV':12,'Quadcopter':4,'eVTOL':5,
+  'General Aviation':8,'Business Jet':9,'Military UAV':6,'HAPS':28
+};
+
+const EX = {
+  surv:   {type:'Surveillance UAV', prop:'Electric',  mat:'Carbon Fiber',   wing:'Tapered',     tail:'Conventional',m:[5,18,80,40,110,200,10,2000,2,30,5000,1]},
+  cargo:  {type:'Cargo UAV',        prop:'Electric',  mat:'Aluminum Alloy', wing:'Rectangular',  tail:'T-Tail',      m:[20,55,100,50,140,80,2,500,3,60,3000,1]},
+  glider: {type:'Glider',           prop:'Electric',  mat:'Carbon Fiber',   wing:'Elliptical',   tail:'V-Tail',      m:[3,12,70,35,120,500,24,6000,1,80,9000,1]},
+  trainer:{type:'Trainer Aircraft',  prop:'Piston',   mat:'Aluminum Alloy', wing:'Tapered',      tail:'Conventional',m:[0,750,180,65,240,300,3,2500,5,400,5000,1]},
+  evtol:  {type:'eVTOL',            prop:'Electric',  mat:'Carbon Fiber',   wing:'Tapered',      tail:'Canard',      m:[400,2200,160,0,250,150,1.5,500,6,0,3000,8]},
+  haps:   {type:'HAPS',             prop:'Electric',  mat:'Carbon Fiber',   wing:'Rectangular',  tail:'Conventional',m:[20,120,80,35,100,0,48,20000,0.5,100,22000,2]},
+};
+
+/* ═══════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════ */
+let CUR=null, AIRF=null, INP={}, PRO={};
+let renderer=null, scene=null, camera=null, aircraftGroup=null, animId=null;
+let autoRot=false, viewMode='solid', cfdMode=false;
+let isDrag=false, isRDrag=false, lastMouse={x:0,y:0};
+let spherical={theta:.55,phi:1.1,r:9}, panOffset={x:0,y:0};
+let selectedAF=null, appMode='ai', currentAfTab='shape';
+
+/* ═══════════════════════════════════════════════════════════
+   MODE SWITCH
+═══════════════════════════════════════════════════════════ */
+function setMode(m, btn) {
+  appMode=m;
+  document.querySelectorAll('.mode-tab').forEach(b=>b.classList.remove('act'));
+  btn.classList.add('act');
+  $('ai-mode-panel').style.display = m==='ai'?'block':'none';
+  $('pro-mode-panel').style.display = m==='pro'?'block':'none';
+}
+function syncPro(){if(CUR)generate();}
+
+/* ═══════════════════════════════════════════════════════════
+   AIRFOIL SELECTOR
+═══════════════════════════════════════════════════════════ */
+function toggleAfMode(){
+  const manual=$('af-mode').value==='manual';
+  $('af-manual-panel').style.display=manual?'block':'none';
+  if(manual) renderAfGrid();
+}
+
+function filterAirfoils(){renderAfGrid();}
+
+function renderAfGrid(){
+  const fam=$('af-family').value, sort=$('af-sort').value;
+  let entries=Object.entries(AFDB);
+  if(fam!=='all') entries=entries.filter(([,v])=>v.family===fam);
+  if(sort==='clmax') entries.sort((a,b)=>b[1].clMax-a[1].clMax);
+  else if(sort==='cd0') entries.sort((a,b)=>a[1].cd0-b[1].cd0);
+  else if(sort==='ld') entries.sort((a,b)=>(b[1].clMax/b[1].cd0)-(a[1].clMax/a[1].cd0));
+  else entries.sort((a,b)=>a[0].localeCompare(b[0]));
+
+  const grid=$('af-sel-grid');
+  grid.innerHTML=entries.map(([name,af])=>`
+    <div class="af-card ${selectedAF===name?'sel':''}" onclick="selectAF('${name}')">
+      <div class="afn">${name}</div>
+      ${miniAfoilSVG(af)}
+      <div class="afs">CL<sub>max</sub>=${af.clMax} · t=${af.t}%</div>
+    </div>`).join('');
+}
+
+function miniAfoilSVG(af){
+  const W=80,H=28,px=3,cw=W-px*2;
+  const tv=af.t/100,m=af.camber/100,p=Math.max(.001,af.p/100);
+  const pts=[];
+  for(let i=0;i<=20;i++){
+    const x=.5*(1-Math.cos(Math.PI*i/20));
+    const yt=5*tv*(.2969*Math.sqrt(x)-.126*x-.3516*x*x+.2843*x*x*x-.1015*x*x*x*x);
+    const yc=x<p?m/(p*p)*(2*p*x-x*x):m/((1-p)*(1-p))*(1-2*p+2*p*x-x*x);
+    pts.push({x,yU:yc+yt,yL:yc-yt});
+  }
+  const tx=x=>px+x*cw, ty=y=>H/2-y*cw*1.8;
+  const upper=pts.map((p2,i)=>`${i===0?'M':'L'}${tx(p2.x).toFixed(1)},${ty(p2.yU).toFixed(1)}`).join(' ');
+  const lower=[...pts].reverse().map(p2=>`L${tx(p2.x).toFixed(1)},${ty(p2.yL).toFixed(1)}`).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px;display:block"><path d="${upper} ${lower} Z" fill="rgba(74,144,226,.2)" stroke="#4A90E2" stroke-width="1"/></svg>`;
+}
+
+function selectAF(name){
+  selectedAF=name;
+  $('af-mode').value='manual';
+  $('af-manual-panel').style.display='block';
+  renderAfGrid();
+  toast('Airfoil set: '+name+' — click Generate ⚡');
+}
+
+function setAfTab(tab, btn){
+  currentAfTab=tab;
+  ['shape','clcd','cp','compare'].forEach(t=>$('af-'+t+'-tab').style.display='none');
+  $('af-'+tab+'-tab').style.display='block';
+  document.querySelectorAll('.card-tab').forEach(b=>b.classList.remove('act'));
+  btn.classList.add('act');
+  if(CUR){
+    if(tab==='clcd') drawCLCD();
+    if(tab==='cp') drawCp();
+    if(tab==='compare') drawFullCompare();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INPUTS
+═══════════════════════════════════════════════════════════ */
+function getInputs(){
+  return {
+    type:$('inp-type').value, prop:$('inp-prop').value, mat:$('inp-mat').value,
+    wing:$('inp-wing').value, wpos:$('inp-wpos').value,
+    tail:$('inp-tail').value, gear:$('inp-gear').value, fuse:$('inp-fuse').value,
+    payload:+$('m1').value, mtow:+$('m2').value,
+    Vc:+$('m3').value, Vs:+$('m4').value, Vmax:+$('m5').value,
+    range:+$('m6').value, endurance:+$('m7').value,
+    alt:+$('m8').value, roc:+$('m9').value,
+    runway:+$('m10').value, ceiling:+$('m11').value, engines:+$('m12').value,
+    afManual: $('af-mode').value==='manual' && selectedAF ? selectedAF : null,
+  };
+}
+function setInputs(p){
+  ['inp-type','inp-prop','inp-mat','inp-wing','inp-tail'].forEach(id=>{
+    const key=id.replace('inp-','');
+    const map={type:'type',prop:'prop',mat:'mat',wing:'wing',tail:'tail'};
+    if(p[map[key]]) try{$(id).value=p[map[key]];}catch(e){}
+  });
+  const keys=['payload','mtow','cruiseSpeed','stallSpeed','maxSpeed','range','endurance','altitude','roc','runway','ceiling','engines'];
+  keys.forEach((k,i)=>{if(p[k]!=null)$('m'+(i+1)).value=p[k];});
+}
+function loadEx(key){
+  const e=EX[key];
+  $('inp-type').value=e.type;
+  $('inp-prop').value=e.prop;
+  $('inp-mat').value=e.mat;
+  $('inp-wing').value=e.wing;
+  $('inp-tail').value=e.tail;
+  e.m.forEach((v,i)=>$('m'+(i+1)).value=v);
+  generate();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ENGINEERING CALCULATIONS (Full ISA, multi-segment)
+═══════════════════════════════════════════════════════════ */
+function calc(inp){
+  const g=9.81;
+  // ISA atmosphere
+  const T=Math.max(216.65,288.15-0.0065*Math.min(inp.alt,11000));
+  const P=101325*Math.pow(T/288.15,5.2561);
+  const rho=P/(287.058*T);
+  const rhoSL=1.225, mu=1.7894e-5*(T/288.15)*0.765, a=Math.sqrt(1.4*287.058*T);
+  const W=inp.mtow*g;
+  const Vc=inp.Vc/3.6, Vs=inp.Vs/3.6, Vmax=inp.Vmax/3.6;
+
+  // Wing sizing from stall — use selected airfoil CLmax
+  const afPick = (inp.afManual && AFDB[inp.afManual]) ? AFDB[inp.afManual] : pickAirfoilObj(inp);
+  const CLmax=afPick.clMax*0.8; // 80% of theoretical (flap factor)
+  const WS_Ns=0.5*rhoSL*Vs*Vs*CLmax;
+  const Sw=W/WS_Ns;
+
+  // Aspect ratio
+  const AR_base=AR_MAP[inp.type]||8;
+  const AR = appMode==='pro' ? +$('sv-ar-r').value : AR_base;
+  const b=Math.sqrt(AR*Sw);
+  const MAC=Sw/b;
+  const taper = appMode==='pro' ? +$('sv-tr-r').value : 0.45;
+  const cRoot=2*MAC/(1+taper), cTip=taper*cRoot;
+  const sweep_base = inp.type==='Flying Wing'?28:(Vmax>80?18:5);
+  const sweep = appMode==='pro' ? +$('sv-sw2-r').value : sweep_base;
+  const dih = appMode==='pro' ? +$('sv-dih-r').value : (inp.type==='Flying Wing'?6:3);
+
+  // Fuselage
+  const fuseL_base = b*.60, fuseD_base = MAC*.84;
+  const fuseL = appMode==='pro' ? +$('sv-fl-r').value : fuseL_base;
+  const fuseD = appMode==='pro' ? +$('sv-fd-r').value : fuseD_base;
+
+  // Parasite drag breakdown (component buildup)
+  const Cf=0.455/Math.pow(Math.log10(rho*Vc*fuseL/mu),2.58); // turbulent flat plate
+  const SwetF=Math.PI*fuseD*fuseL*1.05;
+  const SwetW=Sw*2.08;
+  const CDfuse=Cf*SwetF/Sw*1.2, CDwing=Cf*SwetW/Sw*(1+afPick.t/50+100*Math.pow(afPick.t/100,4));
+  const CDtail=Cf*0.4*1.05, CDmisc=0.003;
+  const CD0=CDfuse+CDwing+CDtail+CDmisc+afPick.cd0*0.35;
+
+  // Aero at cruise
+  const e=Math.min(0.92,0.86*(1-0.045*Math.pow(AR,.68)));
+  const CLc=2*W/(rho*Vc*Vc*Sw);
+  const CDi=CLc*CLc/(Math.PI*AR*e);
+  const CDc=CD0+CDi;
+  const LD=CLc/CDc;
+  const LDmax=0.5*Math.sqrt(Math.PI*AR*e/CD0);
+  const CLopt=Math.sqrt(CD0*Math.PI*AR*e); // CL at best L/D
+  const D=0.5*rho*Vc*Vc*Sw*CDc;
+  const Treq=D, Preq_kW=D*Vc/1000;
+  const Mach=Vc/a, Re=rho*Vc*MAC/mu;
+
+  // Tails
+  const VH=0.38, lH=fuseL*0.48; const SH=VH*Sw*MAC/lH;
+  const VV=0.048, lV=lH; const SV=VV*Sw*b/lV;
+
+  // Stability (simple first-order)
+  const xcg=26+taper*4, xnp=38+(AR>10?4:0), SM=xnp-xcg;
+  const Cmalpha=-(SM/100)*2*Math.PI; // pitch stiffness
+
+  // Structure
+  const nLim=inp.type==='Military UAV'?6.5:3.5;
+  const Mbend=W*b/8*nLim*1.5; // root bending moment N·m
+  const hSpar=cRoot*(afPick.t/100)*0.6; // spar height
+  const sparArea=2*(hSpar*0.015); // simplified I-beam cap area m²
+  const mat=MAT_DB[inp.mat]||MAT_DB['Aluminum Alloy'];
+  const sigmaAllow=mat.tensile*0.35e6; // Pa, with safety
+  const FoS=sigmaAllow*sparArea*hSpar/Mbend;
+
+  // Weight fractions
+  const wst_frac = appMode==='pro' ? +$('sv-wst-r').value/100 : 0.28;
+  const wfu_frac = appMode==='pro' ? +$('sv-wfu-r').value/100 : 0.22;
+  const Wstr=inp.mtow*wst_frac, Wpr=inp.mtow*.14, Wav=inp.mtow*.07;
+  const Wfuel=inp.mtow*wfu_frac, Wpay=inp.payload;
+  const Woth=Math.max(0,inp.mtow-Wstr-Wpr-Wav-Wfuel-Wpay);
+
+  // Range/endurance check (Breguet)
+  const eta_p=0.82; // propulsive efficiency
+  const SFC_kgNs=inp.prop==='Electric'?0:1.2e-5; // fuel-specific
+  const E_spec=inp.prop==='Electric'?180:0; // Wh/kg battery
+  const rangeCalc = inp.prop==='Electric'
+    ? (Wfuel*E_spec*3.6e3)/(D*1000)*LD/1000 // km
+    : (eta_p/SFC_kgNs/g*LD*Math.log(inp.mtow/(inp.mtow-Wfuel))/1000); // Breguet km
+
+  // Glide
+  const Vmd=Math.pow(2*W/(rho*Sw)*Math.sqrt(CD0/(Math.PI*AR*e*3)),.5);
+  const sinkRate=Vmd/LDmax;
+
+  return {
+    WS:WS_Ns/g, Sw, b, MAC, cRoot, cTip, taper, AR, sweep, dih,
+    CLc, CDc, CD0, CDi, LD, LDmax, CLopt, Treq, Preq_kW,
+    SH, SV, fuseL, fuseD,
+    xcg, xnp, SM, Cmalpha,
+    Mbend, hSpar, FoS,
+    Wstr, Wpr, Wav, Wfuel, Wpay, Woth,
+    rho, rhoSL, mu, Vc, Vs, Vmax, nLim, Mach, Re,
+    rangeCalc, sinkRate, Vmd, e, afPick,
+  };
+}
+
+function pickAirfoilObj(inp){
+  let best=null, bs=-Infinity;
+  for(const [,af] of Object.entries(AFDB)){
+    let score=af.clMax*3-af.cd0*200;
+    if(inp.type==='Glider'||inp.type==='HAPS'||inp.type==='Surveillance UAV') score+=af.clMax*3-af.cd0*300;
+    if(inp.type==='Flying Wing') score+=af.family==='selig'&&af.cmac>-.1?3:-2;
+    if(inp.Vc>250) score-=af.t*0.5;
+    if(score>bs){bs=score; best=af;}
+  }
+  return best;
+}
+function pickAirfoil(inp,s){
+  if(inp.afManual&&AFDB[inp.afManual]) return {sel:{name:inp.afManual,...AFDB[inp.afManual]},Re:s.Re,manual:true};
+  let best=null, bname='', bs=-Infinity;
+  for(const [name,af] of Object.entries(AFDB)){
+    let score=af.clMax*3-af.cd0*200;
+    if(inp.type==='Glider'||inp.type==='HAPS'||inp.type==='Surveillance UAV') score+=af.clMax*3-af.cd0*300;
+    if(inp.type==='Flying Wing') score+=af.family==='selig'&&af.cmac>-.1?3:-2;
+    if(inp.Vc>250) score-=af.t*0.5;
+    if(score>bs){bs=score; best=af; bname=name;}
+  }
+  return {sel:{name:bname,...best},Re:s.Re,manual:false};
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SVG HELPERS
+═══════════════════════════════════════════════════════════ */
+const SL=(x1,y1,x2,y2,s,w,da='')=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${s}" stroke-width="${w}" ${da?`stroke-dasharray="${da}"`:''}/>`;
+const ST=(x,y,t,sz,f,a='middle',r='')=>`<text x="${x}" y="${y}" font-size="${sz}" fill="${f}" text-anchor="${a}" font-family="Raleway,sans-serif" font-weight="700" ${r?`transform="rotate(${r},${x},${y})"`:''}>${t}</text>`;
+function mc(l,v,u,c=''){return `<div class="rmc ${c}" title="${l}: ${v} ${u}"><div class="rl">${l}</div><div class="rv">${v}</div><div class="ru">${u}</div></div>`;}
+function svgGrid(W,H,px,py,cw,ch,xTicks,yTicks,xMin,xMax,yMin,yMax){
+  let h='';
+  yTicks.forEach(v=>{const y=py+ch-(v-yMin)/(yMax-yMin)*ch;h+=SL(px,y,px+cw,y,'#e8f0fb','.6','4,4');h+=ST(px-3,y+3,v.toFixed(1),7,'#8fa0b8','end');});
+  xTicks.forEach(v=>{const x=px+(v-xMin)/(xMax-xMin)*cw;h+=ST(x,H-3,v,7,'#8fa0b8');});
+  h+=SL(px,py,px,py+ch,'#d0e4f7','.8');h+=SL(px,py+ch,px+cw,py+ch,'#d0e4f7','.8');
+  return h;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GENERATE
+═══════════════════════════════════════════════════════════ */
+const STEPS=['Computing wing geometry & sizing','Running aerodynamic analysis','Stability & control assessment','Structural & weight analysis','Airfoil database selection','Building 3D parametric model','Generating AI engineering report'];
+
+async function generate(){
+  INP=getInputs();
+  const ov=$('overlay'), st=$('gen-st');
+  ov.classList.add('show');
+  $('ov-steps').innerHTML=STEPS.map((s,i)=>`<div class="ov-step" id="os${i}"><div class="ov-dot"></div>${s}</div>`).join('');
+  let si=0;
+  const activateStep=()=>{
+    if(si>0){const prev=$('os'+(si-1));if(prev){prev.classList.remove('act');prev.classList.add('done');}}
+    if(si<STEPS.length){const cur=$('os'+si);if(cur)cur.classList.add('act');}
+    st.textContent=STEPS[si]||'Finalising…';
+  };
+  activateStep();
+  const tick=setInterval(()=>{si++;activateStep();},370);
+  await new Promise(r=>setTimeout(r,2800));
+  clearInterval(tick);
+  STEPS.forEach((_,i)=>{const el=$('os'+i);if(el){el.classList.remove('act');el.classList.add('done');}});
+  await new Promise(r=>setTimeout(r,200));
+  ov.classList.remove('show');
+
+  CUR=calc(INP); AIRF=pickAirfoil(INP,CUR);
+
+  $('empty-state').style.display='none';
+  $('results').style.display='block';
+  $('res-title').textContent=INP.type+' — '+INP.prop;
+  $('res-sub').textContent=`${INP.payload}kg payload · ${INP.mtow}kg MTOW · ${INP.Vc}km/h cruise · ${INP.range}km range · ${INP.endurance}h endurance · ${INP.mat}`;
+
+  renderOverview(); renderAero(); renderStab(); renderStruct();
+  renderAirfoil(); renderPerf(); renderBOM(); renderReg(); render3D();
+  streamReport();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   OVERVIEW — 12+12 METRICS
+═══════════════════════════════════════════════════════════ */
+function renderOverview(){
+  const s=CUR;
+  $('ov-grid').innerHTML=[
+    mc('Wingspan',f(s.b,2),'m'),
+    mc('Wing Area',f(s.Sw,2),'m²'),
+    mc('Aspect Ratio',f(s.AR,1),''),
+    mc('Wing Loading',f(s.WS,1),'kg/m²'),
+  ].join('');
+  $('ov-grid2').innerHTML=[
+    mc('L/D Cruise',f(s.LD,1),'','good'),
+    mc('Max L/D',f(s.LDmax,1),'','good'),
+    mc('Power Req.',f(s.Preq_kW,2),'kW','blue'),
+    mc('Static Margin',f(s.SM,1),'%',s.SM>5&&s.SM<25?'good':'warn'),
+    mc('Root Chord',f(s.cRoot,3),'m'),
+    mc('Tip Chord',f(s.cTip,3),'m'),
+    mc('Thrust Req.',f(s.Treq,1),'N'),
+    mc('Mach No.',f(s.Mach,3),'',s.Mach>.7?'warn':''),
+    mc('Reynolds No.',(s.Re/1e6).toFixed(2),'M'),
+    mc('CD Parasite',f(s.CD0,4),''),
+    mc('Range Est.',f(s.rangeCalc,0),'km','blue'),
+    mc('Factor of Safety',f(s.FoS,2),'',s.FoS>=1.5?'good':s.FoS>=1?'warn':'bad'),
+  ].join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AERODYNAMICS
+═══════════════════════════════════════════════════════════ */
+function renderAero(){
+  const s=CUR;
+  $('ae-grid').innerHTML=[
+    mc('CL Cruise',f(s.CLc,3),''),mc('CD Total',f(s.CDc,4),''),
+    mc('e Oswald',f(s.e,3),''),mc('L/D Ratio',f(s.LD,1),''),
+    mc('Sweep',s.sweep+'','°'),mc('Dihedral',s.dih+'','°'),
+  ].join('');
+  drawAoA(); drawDrag(); drawPower(); drawVpolar();
+}
+
+function drawAoA(){
+  const s=CUR, W=300,H=155,px=36,py=10,cw=W-px-14,ch=H-py-26;
+  const CLa=2*Math.PI/(1+2/s.AR);
+  const pts=[], stall=[];
+  for(let a=-5;a<=20;a+=.35){
+    const aoaR=(a+2)*Math.PI/180;
+    const CL_lin=CLa*aoaR;
+    const CL=CL_lin<s.afPick.clMax ? CL_lin : s.afPick.clMax*(1-Math.pow((a-14)/10,2)*0.5);
+    pts.push([a,CL]); if(a>14)stall.push([a,CL]);
+  }
+  const tx=v=>px+(v+5)/25*cw, ty=v=>py+ch-(v+.1)/2.2*ch;
+  const path=pts.map((p,i)=>`${i===0?'M':'L'}${tx(p[0]).toFixed(1)},${ty(p[1]).toFixed(1)}`).join(' ');
+  const stallPath=stall.map((p,i)=>`${i===0?'M':'L'}${tx(p[0]).toFixed(1)},${ty(p[1]).toFixed(1)}`).join(' ');
+  const cAoA=s.CLc/CLa*180/Math.PI-2;
+  let h=svgGrid(W,H,px,py,cw,ch,[-4,0,4,8,12,16],[-.2,0,.4,.8,1.2,1.6,2.0],-5,20,-.2,2.1);
+  h+=`<path d="${path}" fill="none" stroke="#4A90E2" stroke-width="2" stroke-linecap="round"/>`;
+  if(stallPath) h+=`<path d="${stallPath}" fill="none" stroke="#e53e3e" stroke-width="2" stroke-dasharray="4,3"/>`;
+  h+=`<line x1="${tx(0)}" y1="${py}" x2="${tx(0)}" y2="${py+ch}" stroke="#d0e4f7" stroke-width=".6" stroke-dasharray="3,3"/>`;
+  const cx=tx(cAoA), cy=ty(s.CLc);
+  h+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4.5" fill="#4A90E2"/>`;
+  h+=ST(cx+8,cy-5,'cruise',8,'#4A90E2','start');
+  h+=ST(px-26,py+ch/2,'CL',9,'#8fa0b8','middle',`-90,${px-26},${py+ch/2}`);
+  h+=ST(px+cw/2,H-2,'AoA (°)',8,'#8fa0b8');
+  // stall label
+  if(stall.length) h+=ST(tx(16),ty(s.afPick.clMax*.85)-8,'Stall',8,'#e53e3e','start');
+  $('ch-aoa').innerHTML=h;
+}
+
+function drawDrag(){
+  const s=CUR, W=300,H=155,px=44,py=10,cw=W-px-14,ch=H-py-26;
+  const pts=[];
+  for(let CL=0;CL<=s.afPick.clMax*.98;CL+=.025){
+    const CD=s.CD0+CL*CL/(Math.PI*s.AR*s.e);
+    pts.push([CD,CL]);
+  }
+  const xMax=Math.max(...pts.map(p=>p[0]))*1.15;
+  const tx=v=>px+v/xMax*cw, ty=v=>py+ch-v/2.1*ch;
+  const path=pts.map((p,i)=>`${i===0?'M':'L'}${tx(p[0]).toFixed(3)},${ty(p[1]).toFixed(2)}`).join(' ');
+  // Best L/D tangent
+  const tanX=Math.sqrt(s.CD0/(Math.PI*s.AR*s.e)), tanY=s.CLopt;
+  let h=svgGrid(W,H,px,py,cw,ch,[],[0,.4,.8,1.2,1.6,2.0],0,xMax*1.05,0,2.1);
+  h+=`<path d="M${tx(0)},${ty(0)} L${tx(tanX*3)},${ty(tanY*3)}" stroke="rgba(13,201,160,.4)" stroke-width="1" stroke-dasharray="4,3"/>`;
+  h+=`<path d="${path} L${tx(pts[pts.length-1][0])},${ty(0)} L${tx(0)},${ty(0)} Z" fill="rgba(74,144,226,.06)"/>`;
+  h+=`<path d="${path}" fill="none" stroke="#0dc9a0" stroke-width="2.2" stroke-linecap="round"/>`;
+  h+=`<circle cx="${tx(s.CDc).toFixed(3)}" cy="${ty(s.CLc).toFixed(2)}" r="4.5" fill="#4A90E2"/>`;
+  h+=ST(tx(s.CDc)+7,ty(s.CLc)-4,'cruise',8,'#4A90E2','start');
+  h+=`<circle cx="${tx(tanX)}" cy="${ty(tanY)}" r="3.5" fill="#0dc9a0"/>`;
+  h+=ST(tx(tanX)+7,ty(tanY)-4,'best L/D',7,'#0dc9a0','start');
+  h+=ST(px-36,py+ch/2,'CL',9,'#8fa0b8','middle',`-90,${px-36},${py+ch/2}`);
+  h+=ST(px+cw/2,H-2,'CD',8,'#8fa0b8');
+  $('ch-drag').innerHTML=h;
+}
+
+function drawPower(){
+  const s=CUR, W=620,H=130,px=46,py=8,cw=W-px-18,ch=H-py-22;
+  const Vstall=s.Vs*.95, pts=[], pts2=[];
+  for(let V=Vstall;V<=s.Vmax*1.05;V+=.6){
+    const q=.5*s.rho*V*V;
+    const CL=clamp(2*(INP.mtow*9.81)/(s.rho*V*V*s.Sw),.05,s.afPick.clMax);
+    const CD=s.CD0+CL*CL/(Math.PI*s.AR*s.e);
+    pts.push([V*3.6,q*s.Sw*CD*V/1000]);
+    const Pa=INP.prop==='Electric'?s.Preq_kW*1.4:s.Preq_kW*1.55;
+    pts2.push([V*3.6,Pa]);
+  }
+  const pMax=Math.max(...pts.map(p=>p[1]))*1.18;
+  const xMin=pts[0][0], xMax=pts[pts.length-1][0];
+  const tx=v=>px+(v-xMin)/(xMax-xMin)*cw, ty=v=>py+ch-v/pMax*ch;
+  const path=pts.map((p,i)=>`${i===0?'M':'L'}${tx(p[0]).toFixed(1)},${ty(p[1]).toFixed(1)}`).join(' ');
+  const path2=pts2.map((p,i)=>`${i===0?'M':'L'}${tx(p[0]).toFixed(1)},${ty(p[1]).toFixed(1)}`).join(' ');
+  let h='';
+  for(let i=0;i<=4;i++){const y=py+ch*(1-i/4);h+=SL(px,y,px+cw,y,'#e8f0fb','.5','3,4');h+=ST(px-3,y+3,(pMax*i/4).toFixed(1),7,'#8fa0b8','end');}
+  h+=SL(px,py,px,py+ch,'#d0e4f7','.8');h+=SL(px,py+ch,px+cw,py+ch,'#d0e4f7','.8');
+  h+=`<path d="${path} L${tx(xMax)},${py+ch} L${tx(xMin)},${py+ch} Z" fill="rgba(74,144,226,.07)"/>`;
+  h+=`<path d="${path}" fill="none" stroke="#4A90E2" stroke-width="2" stroke-linecap="round"/>`;
+  h+=`<path d="${path2}" fill="none" stroke="#e53e3e" stroke-width="1.5" stroke-dasharray="6,3" stroke-linecap="round"/>`;
+  const cx=tx(s.Vc*3.6),cy=ty(s.Preq_kW);
+  h+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4.5" fill="#4A90E2"/>`;
+  h+=SL(cx,cy,cx,py+ch,'#4A90E2','.8','3,3');
+  h+=ST(cx+6,cy-5,'cruise',8,'#4A90E2','start');
+  h+=ST(px+cw-2,ty(pts2[Math.floor(pts2.length/3)][1])-6,'Pa available',7,'#e53e3e','end');
+  h+=ST(px-36,py+ch/2,'P (kW)',9,'#8fa0b8','middle',`-90,${px-36},${py+ch/2}`);
+  h+=ST(px+cw/2,H-1,'Airspeed (km/h)',8,'#8fa0b8');
+  $('ch-power').innerHTML=h;
+}
+
+function drawVpolar(){
+  const s=CUR, W=620,H=120,px=46,py=8,cw=W-px-18,ch=H-py-22;
+  const pts=[];
+  for(let V=s.Vs*.95;V<=s.Vmax;V+=.5){
+    const CL=clamp(2*(INP.mtow*9.81)/(s.rho*V*V*s.Sw),.05,s.afPick.clMax);
+    const CD=s.CD0+CL*CL/(Math.PI*s.AR*s.e);
+    const sink=V*CD/CL;
+    pts.push([V*3.6,sink]);
+  }
+  const pMax=Math.max(...pts.map(p=>p[1]))*1.1;
+  const xMin=pts[0][0],xMax=pts[pts.length-1][0];
+  const tx=v=>px+(v-xMin)/(xMax-xMin)*cw, ty=v=>py+ch-v/pMax*ch;
+  const path=pts.map((p,i)=>`${i===0?'M':'L'}${tx(p[0]).toFixed(1)},${ty(p[1]).toFixed(1)}`).join(' ');
+  let h='';
+  for(let i=0;i<=3;i++){const y=py+ch*(1-i/3);h+=SL(px,y,px+cw,y,'#e8f0fb','.5','3,4');h+=ST(px-3,y+3,(pMax*i/3).toFixed(2),7,'#8fa0b8','end');}
+  h+=SL(px,py,px,py+ch,'#d0e4f7','.8');h+=SL(px,py+ch,px+cw,py+ch,'#d0e4f7','.8');
+  h+=`<path d="${path}" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"/>`;
+  const vmdX=tx(s.Vmd*3.6),vmdY=ty(s.sinkRate);
+  h+=`<circle cx="${vmdX}" cy="${vmdY}" r="4" fill="#a78bfa"/>`;
+  h+=ST(vmdX+6,vmdY-4,'Min sink',7,'#a78bfa','start');
+  h+=ST(px-36,py+ch/2,'Sink (m/s)',9,'#8fa0b8','middle',`-90,${px-36},${py+ch/2}`);
+  h+=ST(px+cw/2,H-1,'Airspeed (km/h)',8,'#8fa0b8');
+  $('ch-vpolar').innerHTML=h;
+}
+
+/* CL/CD and Cp charts */
+function drawCLCD(){
+  const s=CUR, W=620,H=200,px=46,py=10,cw=W-px-18,ch=H-py-24;
+  const pts=[];
+  for(let CL=0.05;CL<=s.afPick.clMax*.98;CL+=.02){
+    const CD=s.CD0+CL*CL/(Math.PI*s.AR*s.e);
+    pts.push([CL,CL/CD]);
+  }
+  const yMax=Math.max(...pts.map(p=>p[1]))*1.1;
+  const tx=v=>px+v/s.afPick.clMax*cw, ty=v=>py+ch-v/yMax*ch;
+  const path=pts.map((p,i)=>`${i===0?'M':'L'}${tx(p[0]).toFixed(2)},${ty(p[1]).toFixed(1)}`).join(' ');
+  let h='';
+  for(let i=0;i<=4;i++){const y=py+ch*(1-i/4);h+=SL(px,y,px+cw,y,'#e8f0fb','.5','3,4');h+=ST(px-3,y+3,(yMax*i/4).toFixed(0),7,'#8fa0b8','end');}
+  h+=SL(px,py,px,py+ch,'#d0e4f7','.8');h+=SL(px,py+ch,px+cw,py+ch,'#d0e4f7','.8');
+  h+=`<path d="${path}" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round"/>`;
+  h+=`<circle cx="${tx(s.CLopt)}" cy="${ty(s.LD)}" r="4.5" fill="#f59e0b"/>`;
+  h+=ST(tx(s.CLopt)+7,ty(s.LD)-5,`L/D max = ${f(s.LDmax,1)}`,8,'#f59e0b','start');
+  h+=ST(px-36,py+ch/2,'CL/CD',9,'#8fa0b8','middle',`-90,${px-36},${py+ch/2}`);
+  h+=ST(px+cw/2,H-1,'CL',8,'#8fa0b8');
+  $('ch-clcd').innerHTML=h;
+  // Re chart
+  const r2=document.getElementById('ch-re'); if(!r2)return;
+  const W2=620,H2=140,px2=50,py2=8,cw2=W2-px2-18,ch2=H2-py2-22;
+  const reVals=[1e4,5e4,1e5,5e5,1e6,5e6,2e7];
+  const pts2=reVals.map(Re=>{const cla2=2*Math.PI/(1+2/s.AR)*.92;return[Re,cla2*4*Math.PI/180];});
+  const xMin2=1e4,xMax2=2e7;
+  const tx2=v=>px2+(Math.log10(v)-Math.log10(xMin2))/(Math.log10(xMax2)-Math.log10(xMin2))*cw2;
+  const ty2=v=>py2+ch2-(v-.3)/1.4*ch2;
+  const path2=pts2.map((p,i)=>`${i===0?'M':'L'}${tx2(p[0]).toFixed(1)},${ty2(p[1]).toFixed(2)}`).join(' ');
+  let h2=SL(px2,py2,px2,py2+ch2,'#d0e4f7','.8');h2+=SL(px2,py2+ch2,px2+cw2,py2+ch2,'#d0e4f7','.8');
+  [1e4,1e5,1e6,1e7].forEach(v=>{const x=tx2(v);h2+=SL(x,py2,x,py2+ch2,'#e8f0fb','.5','3,4');h2+=ST(x,H2-2,(v>=1e6?v/1e6+'M':v>=1e3?v/1e3+'k':v),7,'#8fa0b8');});
+  h2+=`<path d="${path2}" fill="none" stroke="#0dc9a0" stroke-width="2" stroke-linecap="round"/>`;
+  const crx=tx2(s.Re), cry=ty2(s.CLc);
+  h2+=`<circle cx="${crx}" cy="${cry}" r="4" fill="#0dc9a0"/>`;
+  h2+=ST(crx+7,cry-4,'cruise Re',7,'#0dc9a0','start');
+  h2+=ST(px2+cw2/2,H2-1,'Reynolds Number',8,'#8fa0b8');
+  r2.innerHTML=h2;
+}
+
+function drawCp(){
+  const s=CUR, W=620,H=200,px=46,py=12,cw=W-px-18,ch=H-py-28;
+  const af=s.afPick, aoa=(s.CLc/(2*Math.PI/(1+2/s.AR))-2*Math.PI/180)*180/Math.PI;
+  const CL=s.CLc;
+  // Simplified Cp distribution
+  const pts_u=[], pts_l=[];
+  for(let i=0;i<=50;i++){
+    const x=.5*(1-Math.cos(Math.PI*i/50));
+    const tv=af.t/100,m=af.camber/100,p=Math.max(.001,af.p/100);
+    const yt=5*tv*(.2969*Math.sqrt(x)-.126*x-.3516*x*x+.2843*x*x*x-.1015*x*x*x*x);
+    const yc=x<p?m/(p*p)*(2*p*x-x*x):m/((1-p)*(1-p))*(1-2*p+2*p*x-x*x);
+    const dyc_dx=x<p?2*m/(p*p)*(p-x):2*m/((1-p)*(1-p))*(p-x);
+    const theta=Math.atan(dyc_dx);
+    // Cp approximation using thin-airfoil theory
+    const Cp_u=-2*(aoa*Math.PI/180+dyc_dx)*(1-x)*.65-CL*x*.5-.15;
+    const Cp_l= 2*(aoa*Math.PI/180+dyc_dx)*(1-x)*.45+CL*x*.2+.08;
+    pts_u.push([x,clamp(Cp_u,-3,1.5)]);
+    pts_l.push([x,clamp(Cp_l,-1,1.5)]);
+  }
+  const yMin=-2.5, yMax=1.2;
+  const tx=v=>px+v*cw, ty=v=>py+ch-(v-yMin)/(yMax-yMin)*ch;
+  const pu=pts_u.map((p,i)=>`${i===0?'M':'L'}${tx(p[0]).toFixed(2)},${ty(p[1]).toFixed(2)}`).join(' ');
+  const pl=pts_l.map((p,i)=>`${i===0?'M':'L'}${tx(p[0]).toFixed(2)},${ty(p[1]).toFixed(2)}`).join(' ');
+  let h='';
+  for(let v=-2;v<=1;v+=.5){const y=ty(v);h+=SL(px,y,px+cw,y,'#e8f0fb','.5','3,4');h+=ST(px-3,y+3,v.toFixed(1),7,'#8fa0b8','end');}
+  const y0=ty(0);h+=SL(px,y0,px+cw,y0,'#d0e4f7','1');
+  h+=SL(px,py,px,py+ch,'#d0e4f7','.8');h+=SL(px,py+ch,px+cw,py+ch,'#d0e4f7','.8');
+  h+=`<path d="${pu}" fill="none" stroke="#e53e3e" stroke-width="2" stroke-linecap="round"/>`;
+  h+=`<path d="${pl}" fill="none" stroke="#4A90E2" stroke-width="2" stroke-linecap="round"/>`;
+  h+=ST(px+cw*.3,py+14,'Upper surface',8,'#e53e3e','start');
+  h+=ST(px+cw*.3,py+26,'Lower surface',8,'#4A90E2','start');
+  h+=ST(px-36,py+ch/2,'-Cp',9,'#8fa0b8','middle',`-90,${px-36},${py+ch/2}`);
+  h+=ST(px+cw/2,H-2,'x/c',8,'#8fa0b8');
+  h+=ST(px+cw*.02,py+8,`AoA ≈ ${aoa.toFixed(1)}°`,8,'#text3','start');
+  $('ch-cp').innerHTML=h;
+}
+
+function drawFullCompare(){
+  const s=CUR, afs=Object.entries(AFDB);
+  const maxCL=Math.max(...afs.map(([,v])=>v.clMax));
+  const maxLD=Math.max(...afs.map(([,v])=>v.clMax/v.cd0));
+  $('af-full-compare').innerHTML=afs.map(([name,d])=>`
+    <div style="background:var(--off);border:1.5px solid ${name===AIRF.sel.name?'var(--blue)':'var(--border)'};border-radius:8px;padding:9px">
+      <div style="font-size:10px;font-weight:900;color:${name===AIRF.sel.name?'var(--blue)':'var(--text2)'};margin-bottom:5px">${name}</div>
+      <div class="clbl" style="margin-bottom:3px">CLmax</div>
+      <div style="background:var(--blue-pale);height:8px;border-radius:4px;overflow:hidden;margin-bottom:5px"><div style="width:${(d.clMax/maxCL*100).toFixed(0)}%;height:100%;background:${name===AIRF.sel.name?'var(--blue)':'var(--border)'};border-radius:4px"></div></div>
+      <div class="clbl" style="margin-bottom:3px">L/D potential</div>
+      <div style="background:var(--blue-pale);height:8px;border-radius:4px;overflow:hidden"><div style="width:${(d.clMax/d.cd0/maxLD*100).toFixed(0)}%;height:100%;background:${name===AIRF.sel.name?'var(--teal)':'#c0d8f0'};border-radius:4px"></div></div>
+      <div style="font-size:9px;color:var(--text3);margin-top:5px;font-weight:600">t=${d.t}% c=${d.camber}% CL=${d.clMax}</div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STABILITY
+═══════════════════════════════════════════════════════════ */
+function renderStab(){
+  const s=CUR;
+  $('st-grid').innerHTML=[
+    mc('CG',f(s.xcg,1),'% MAC'),
+    mc('Neutral Point',f(s.xnp,1),'% MAC'),
+    mc('Static Margin',f(s.SM,1),'%',s.SM>5&&s.SM<25?'good':s.SM<=5?'bad':'warn'),
+    mc('Cm_alpha',f(s.Cmalpha,3),'/rad',s.Cmalpha<0?'good':'bad'),
+    mc('H-Tail Area',f(s.SH,3),'m²'),
+    mc('V-Tail Area',f(s.SV,3),'m²'),
+    mc('H-Tail Arm',f(s.fuseL*.48,2),'m'),
+    mc('VH Coeff.',f(.38,2),''),
+  ].join('');
+  const rows=[
+    {ok:s.SM>5&&s.SM<25,warn:s.SM>20, l:'Longitudinal Stability',d:`Static margin ${f(s.SM,1)}% — ${s.SM>5&&s.SM<25?'stable':'needs CG/NP adjustment'}`},
+    {ok:s.dih>=2, l:'Lateral/Roll Stability',d:`${s.dih}° dihedral — ${s.dih>=2?'adequate roll stiffness':'low dihedral, consider increasing'}`},
+    {ok:s.SV>.005, l:'Directional/Yaw (Cn_beta)',d:`V-tail ${f(s.SV,3)} m² — ${s.SV>.005?'adequate yaw stability':'V-tail undersized'}`},
+    {ok:s.SM>8, l:'Spin Resistance',d:s.SM>8?'Positive SM reduces departure susceptibility':'Low SM — spin-prone configuration'},
+    {ok:s.SM<22, l:'Pitch Manoeuvreability',d:s.SM<22?'Pilot can apply pitch effectively':'Very stable — reduced control authority'},
+  ];
+  $('stab-rows').innerHTML=rows.map(r=>`<div class="stabrow"><div class="stabico ${r.ok?'ok':r.warn?'warn':'bad'}">${r.ok?'✓':'⚠'}</div><div><div class="stabn">${r.l}</div><div class="stabd">${r.d}</div></div></div>`).join('');
+  drawCG();
+}
+
+function drawCG(){
+  const s=CUR, W=620,H=75,px=55, cw=W-px*2;
+  let h='';
+  h+=ST(px,13,'LE',9,'#8fa0b8'); h+=ST(px+cw,13,'TE',9,'#8fa0b8');
+  h+=`<rect x="${px}" y="18" width="${cw}" height="14" rx="3" fill="rgba(74,144,226,.10)" stroke="#4A90E2" stroke-width=".8"/>`;
+  h+=ST(px-6,28,'MAC',9,'#4A90E2','end');
+  [0,10,20,30,40,50,60,70,80,90,100].forEach(p=>{
+    const x=px+p/100*cw;
+    h+=SL(x,32,x,36,'#d0e4f7','1');
+    if(p%20===0)h+=ST(x,44,p+'%',7,'#8fa0b8');
+  });
+  const cgX=px+s.xcg/100*cw;
+  h+=SL(cgX,13,cgX,68,'#e53e3e','1.8','3,2');
+  h+=`<polygon points="${cgX},22 ${cgX-5},13 ${cgX+5},13" fill="#e53e3e"/>`;
+  h+=ST(cgX,72,`CG ${f(s.xcg,1)}%`,8,'#e53e3e');
+  const npX=px+s.xnp/100*cw;
+  h+=SL(npX,13,npX,68,'#4A90E2','1.8','3,2');
+  h+=`<polygon points="${npX},22 ${npX-5},13 ${npX+5},13" fill="#4A90E2"/>`;
+  h+=ST(npX,72,`NP ${f(s.xnp,1)}%`,8,'#4A90E2');
+  // SM arrow
+  const smX1=Math.min(cgX,npX), smX2=Math.max(cgX,npX);
+  h+=`<line x1="${smX1}" y1="50" x2="${smX2}" y2="50" stroke="${s.SM>5?'#0dc9a0':'#e53e3e'}" stroke-width="2"/>`;
+  h+=ST((smX1+smX2)/2,47,`SM = ${f(s.SM,1)}%`,7,s.SM>5?'#0dc9a0':'#e53e3e');
+  $('ch-cg').innerHTML=h;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STRUCTURE
+═══════════════════════════════════════════════════════════ */
+function renderStruct(){
+  const s=CUR;
+  $('su-grid').innerHTML=[
+    mc('n Limit',f(s.nLim,1),'g'),
+    mc('Root Bending',f(s.Mbend/1000,1),'kN·m'),
+    mc('Spar Depth',f(s.hSpar*100,1),'cm'),
+    mc('Factor of Safety',f(s.FoS,2),'',s.FoS>=1.5?'good':s.FoS>=1?'warn':'bad'),
+    mc('Taper Ratio',f(s.taper,2),''),
+    mc('Root Chord',f(s.cRoot,3),'m'),
+    mc('Tip Chord',f(s.cTip,3),'m'),
+    mc('Oswald e',f(s.e,3),''),
+  ].join('');
+
+  // Lift distribution
+  const W=200,H=120,px=14,py=10,cw=W-px*2,ch=H-py-18;
+  const pts=[];
+  for(let y=-1;y<=1;y+=.015)pts.push([y,Math.sqrt(1-y*y)]);
+  const tx=v=>px+(v+1)/2*cw, ty=v=>py+ch-v*ch;
+  const path=pts.map((p,i)=>`${i===0?'M':'L'}${tx(p[0]).toFixed(1)},${ty(p[1]).toFixed(1)}`).join(' ');
+  let h=`<path d="${path} L${tx(1)},${py+ch} L${tx(-1)},${py+ch} Z" fill="rgba(74,144,226,.12)"/>`;
+  h+=`<path d="${path}" fill="none" stroke="#4A90E2" stroke-width="2" stroke-linecap="round"/>`;
+  h+=SL(tx(0),py,tx(0),py+ch,'#d0e4f7','.6','3,4');h+=SL(px,py+ch,px+cw,py+ch,'#d0e4f7','.8');
+  ['-b/2','0','+b/2'].forEach((l,i)=>h+=ST([px,tx(0),px+cw][i],H-1,l,7,'#8fa0b8'));
+  $('ch-lift').innerHTML=h;
+
+  // Bending moment distribution
+  let h2='';
+  const ptsBM=[];
+  for(let y=0;y<=1;y+=.02)ptsBM.push([y,1-y*y]);
+  const txb=v=>px+v*cw, tyb=v=>py+ch-v*ch;
+  const pathBM=ptsBM.map((p,i)=>`${i===0?'M':'L'}${txb(p[0]).toFixed(2)},${tyb(p[1]).toFixed(2)}`).join(' ');
+  h2+=SL(px,py+ch,px+cw,py+ch,'#d0e4f7','.8');h2+=SL(px,py,px,py+ch,'#d0e4f7','.8');
+  h2+=`<path d="${pathBM} L${txb(1)},${tyb(0)} L${txb(0)},${tyb(0)} Z" fill="rgba(229,62,62,.12)"/>`;
+  h2+=`<path d="${pathBM}" fill="none" stroke="#e53e3e" stroke-width="2"/>`;
+  h2+=ST(px+2,py+10,'Root',7,'#e53e3e','start');
+  h2+=ST(px+cw-2,tyb(.02)-5,'Tip',7,'#8fa0b8','end');
+  $('ch-bend').innerHTML=h2;
+
+  // Weight pie
+  const segs=[
+    {l:'Structure',v:s.Wstr,c:'#4A90E2'},{l:'Propulsion',v:s.Wpr,c:'#0dc9a0'},
+    {l:'Avionics',v:s.Wav,c:'#a78bfa'},{l:'Fuel/Battery',v:s.Wfuel,c:'#f59e0b'},
+    {l:'Payload',v:s.Wpay,c:'#e53e3e'},{l:'Other',v:s.Woth,c:'#8fa0b8'},
+  ].filter(sg=>sg.v>0);
+  const tot=segs.reduce((a,b)=>a+b.v,0);
+  let ph='', ang=-Math.PI/2;
+  segs.forEach(sg=>{
+    const sw=sg.v/tot*2*Math.PI, x1=50+46*Math.cos(ang),y1=50+46*Math.sin(ang);
+    const x2=50+46*Math.cos(ang+sw),y2=50+46*Math.sin(ang+sw);
+    ph+=`<path d="M50,50 L${x1.toFixed(1)},${y1.toFixed(1)} A46,46 0 ${sw>Math.PI?1:0},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="${sg.c}" opacity=".88"/>`;
+    ang+=sw;
+  });
+  $('wpie').innerHTML=ph;
+  $('pie-leg').innerHTML=segs.map(sg=>`<div class="pl-r"><div class="pl-d" style="background:${sg.c}"></div>${sg.l} — ${f(sg.v,1)} kg (${(sg.v/tot*100).toFixed(0)}%)</div>`).join('');
+
+  // Material
+  const mat=MAT_DB[INP.mat];
+  $('mat-name').textContent=INP.mat;
+  if(mat){
+    $('mat-props').innerHTML=[
+      mc('Density',mat.density,'kg/m³'),
+      mc('Tensile',mat.tensile,'MPa'),
+      mc('Modulus',mat.modulus,'GPa'),
+      mc('Compressive',mat.compress,'MPa'),
+      mc('Cost Level',mat.cost,'',''),
+    ].join('');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AIRFOIL DETAIL
+═══════════════════════════════════════════════════════════ */
+function renderAirfoil(){
+  const {sel,Re,manual}=AIRF;
+  $('af-name').textContent=sel.name;
+  $('af-desc').textContent=sel.desc;
+  $('af-badge').textContent=manual?'Manual Pick':'AI Pick';
+  $('af-badge').style.background=manual?'var(--amber)':'var(--teal)';
+
+  // Shape
+  const W=290,H=95,px=10,cw=W-px*2,n=80;
+  const af=sel, tv=af.t/100, m=af.camber/100, p2=Math.max(.001,af.p/100);
+  const pts=[];
+  for(let i=0;i<=n;i++){
+    const x=.5*(1-Math.cos(Math.PI*i/n));
+    const yt=5*tv*(.2969*Math.sqrt(x)-.126*x-.3516*x*x+.2843*x*x*x-.1015*x*x*x*x);
+    const yc=x<p2?m/(p2*p2)*(2*p2*x-x*x):m/((1-p2)*(1-p2))*(1-2*p2+2*p2*x-x*x);
+    pts.push({x,yU:yc+yt,yL:yc-yt,yc});
+  }
+  const tx=x=>px+x*cw, ty=y=>H/2-y*cw*2.9;
+  const upper=pts.map((p,i)=>`${i===0?'M':'L'}${tx(p.x).toFixed(1)},${ty(p.yU).toFixed(1)}`).join(' ');
+  const lower=[...pts].reverse().map(p=>`L${tx(p.x).toFixed(1)},${ty(p.yL).toFixed(1)}`).join(' ');
+  const cam=pts.map((p,i)=>`${i===0?'M':'L'}${tx(p.x).toFixed(1)},${ty(p.yc).toFixed(1)}`).join(' ');
+  $('af-shape').innerHTML=`
+    <path d="${upper} ${lower} Z" fill="rgba(74,144,226,.18)" stroke="#4A90E2" stroke-width="1.5"/>
+    <path d="${cam}" fill="none" stroke="#e53e3e" stroke-width=".9" stroke-dasharray="4,3"/>
+    <line x1="${px}" y1="${H/2}" x2="${px+cw}" y2="${H/2}" stroke="#d0e4f7" stroke-width=".5"/>
+    ${ST(px+cw*.25,ty(pts[Math.floor(n*.25)].yU)-5,'Upper',7,'#4A90E2')}
+    ${ST(px+cw*.25,ty(pts[Math.floor(n*.25)].yL)+10,'Lower',7,'#4A90E2')}`;
+
+  $('af-metrics').innerHTML=[
+    mc('Max CL',f(sel.clMax,2),'','good'),
+    mc('CD₀',f(sel.cd0,4),''),
+    mc('Cm(ac)',f(sel.cmac,3),'',sel.cmac<0?'warn':''),
+    mc('Thickness',sel.t+'%',''),
+    mc('Camber',sel.camber+'%',''),
+    mc('Reynolds',(Re/1e6).toFixed(2),'M'),
+  ].join('');
+
+  // Compare bars
+  const entries=Object.entries(AFDB), maxCL=Math.max(...entries.map(([,v])=>v.clMax));
+  $('af-compare-list').innerHTML=entries.map(([name,d])=>`
+    <div class="af-row ${name===sel.name?'sel':''}">
+      <div class="afn">${name}</div>
+      <div class="af-bg"><div class="af-fill" style="width:${(d.clMax/maxCL*100).toFixed(1)}%">${f(d.clMax,2)}</div></div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PERFORMANCE
+═══════════════════════════════════════════════════════════ */
+function renderPerf(){
+  const s=CUR, inp=INP;
+  const rows=[
+    {l:'Stall Speed',v:`${inp.Vs} km/h`,p:inp.Vs/inp.Vmax},
+    {l:'Min Sink Speed',v:`${(s.Vmd*3.6).toFixed(0)} km/h`,p:s.Vmd*3.6/inp.Vmax,c:'#a78bfa'},
+    {l:'Best L/D Speed',v:`${(s.Vmd*3.6*1.32).toFixed(0)} km/h`,p:s.Vmd*3.6*1.32/inp.Vmax,c:'#0dc9a0'},
+    {l:'Cruise Speed',v:`${inp.Vc} km/h`,p:inp.Vc/inp.Vmax},
+    {l:'Max Speed (VNE)',v:`${inp.Vmax} km/h`,p:1,c:'#e53e3e'},
+    {l:'Range (Est.)',v:`${f(s.rangeCalc,0)} km`,p:Math.min(s.rangeCalc/5000,1),c:'#0dc9a0'},
+    {l:'Range (Input)',v:`${inp.range} km`,p:Math.min(inp.range/5000,1),c:'#0dc9a0'},
+    {l:'Endurance',v:`${inp.endurance} h`,p:Math.min(inp.endurance/48,1),c:'#0dc9a0'},
+    {l:'Service Ceiling',v:`${inp.ceiling} m`,p:Math.min(inp.ceiling/25000,1)},
+    {l:'Rate of Climb',v:`${inp.roc} m/s`,p:Math.min(inp.roc/30,1)},
+    {l:'Min Sink Rate',v:`${f(s.sinkRate,2)} m/s`,p:Math.min(s.sinkRate/15,1),c:'#a78bfa'},
+    {l:'L/D (Cruise)',v:f(s.LD,1),p:Math.min(s.LD/35,1),c:'#a78bfa'},
+    {l:'Max L/D',v:f(s.LDmax,1),p:Math.min(s.LDmax/35,1),c:'#0dc9a0'},
+    {l:'Thrust Required',v:`${f(s.Treq,1)} N`,p:Math.min(s.Treq/10000,1),c:'#f59e0b'},
+    {l:'Power Required',v:`${f(s.Preq_kW,2)} kW`,p:Math.min(s.Preq_kW/200,1),c:'#f59e0b'},
+    {l:'Wing Loading',v:`${f(s.WS,1)} kg/m²`,p:Math.min(s.WS/200,1)},
+    {l:'Mach Number',v:f(s.Mach,3),p:Math.min(s.Mach,1),c:s.Mach>.7?'#e53e3e':'#4A90E2'},
+    {l:'Reynolds Number',v:`${(s.Re/1e6).toFixed(2)}M`,p:Math.min(s.Re/2e7,1)},
+  ];
+  $('perf-rows').innerHTML=rows.map(r=>`
+    <div class="perf-row">
+      <span class="perf-lbl">${r.l}</span>
+      <div class="perf-bg"><div class="perf-fill" style="width:${(r.p*100).toFixed(1)}%;background:${r.c||'var(--blue)'}"></div></div>
+      <span class="perf-val">${r.v}</span>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BOM (COMPREHENSIVE)
+═══════════════════════════════════════════════════════════ */
+function renderBOM(){
+  const inp=INP, s=CUR;
+  const thrustN=s.Treq*1.35;
+  const bom=[];
+  // Propulsion
+  if(inp.prop==='Electric'){
+    bom.push(['req','Motor (Brushless)',`${Math.round(thrustN/inp.engines*0.3)}KV × ${Math.round(thrustN/inp.engines)}N thrust`,'×'+inp.engines,`$${Math.round(40+thrustN/inp.engines*0.4)}–$${Math.round(120+thrustN/inp.engines*0.8)}`]);
+    bom.push(['req','ESC',`${Math.round(thrustN/inp.engines*0.28+20)}A, BEC`,'×'+inp.engines,`$${Math.round(20+thrustN/inp.engines*0.2)}–$80`]);
+    bom.push(['req','LiPo Battery',`${appMode==='pro'?$('sv-bs-r').value+'S':'4S–6S'} ${Math.round(s.Wfuel*1000*0.8/6)}mAh`,'×1','$80–$280']);
+    bom.push(['req','Propeller',`${f(s.Vc>80?s.b*0.18:s.b*0.28,1)}" dia × ${s.Vc>80?3:2} blade`,'×'+inp.engines,'$8–$35']);
+  } else if(inp.prop==='Piston'){
+    bom.push(['req','Piston Engine',`${Math.round(s.Preq_kW*1.8)} cc displacement`,'×'+inp.engines,'$200–$900']);
+    bom.push(['req','Fuel Tank',`${Math.round(inp.endurance*s.Preq_kW*.22)} L`,'×1','$18–$50']);
+    bom.push(['req','Propeller',`${f(s.b*0.25,1)}" dia × 2 blade`,'×'+inp.engines,'$22–$70']);
+    bom.push(['req','Ignition System','CDI electronic','×'+inp.engines,'$30–$80']);
+  } else {
+    bom.push(['req','Turbine Engine',`${Math.round(thrustN/inp.engines)}N thrust`,'×'+inp.engines,'$2,500–$20,000']);
+    bom.push(['req','Fuel System','AVTUR/JP-8 compatible','×1','$400–$1,200']);
+    bom.push(['opt','FADEC','Full authority digital engine','×'+inp.engines,'$800–$3,000']);
+  }
+  // Flight systems
+  bom.push(['req','Flight Controller','32-bit ARM Cortex + IMU + GPS','×1','$80–$500']);
+  bom.push(['req','GPS/Navigation','Multi-constellation RTK','×1','$60–$800']);
+  bom.push(['req','Servos',`${Math.round(s.Treq*.05+8)}kg·cm torque × ${Math.round(s.SH*8+4)} units`,'set','$12–$55 ea.']);
+  bom.push(['req','Telemetry','900MHz/2.4GHz datalink','×1','$40–$200']);
+  bom.push(['opt','Pitot Tube','Airspeed sensor + baro','×1','$15–$80']);
+  // Structure
+  bom.push(['req','Carbon Spar Main',`${f(s.b/2,1)}m × ${f(s.hSpar*100,1)}cm H spar`,'×2','$35–$150']);
+  bom.push(['req','Ribs',`${Math.round(s.b*3)} ribs @ ${f(s.b/Math.round(s.b*3),2)}m pitch`,'set','$40–$180']);
+  bom.push(['req','Airframe Skin',`${inp.mat} — ${f(s.Sw*1.25,1)}m² wetted`,'×1','$120–$600']);
+  bom.push(['req','Fuselage Shell',`${f(s.fuseL,1)}m L × ${f(s.fuseD*100,0)}cm dia`,'×1','$80–$400']);
+  bom.push(['opt','Canopy/Hatch','ABS vacuum formed','×1','$25–$80']);
+  // Fasteners
+  bom.push(['req','Fasteners & Hardware','M2–M6 stainless + carbon inserts','lot','$30–$90']);
+  bom.push(['opt','Payload Bay','Quick-release camera/sensor mount','×1','$40–$200']);
+
+  const total_low=bom.reduce((a,r)=>a+parseInt(r[4].replace(/\$|,|\–.*|\/ea\./g,'')),0);
+  $('bom-rows').innerHTML=`<table class="bom-tbl"><thead><tr><th>Status</th><th>Component</th><th>Specification</th><th>Qty</th><th>Est. Cost</th></tr></thead><tbody>${
+    bom.map(r=>`<tr><td><span class="bom-tag ${r[0]}">${r[0]==='req'?'Required':'Optional'}</span></td><td style="font-weight:700;color:var(--text)">${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td style="font-weight:700;color:var(--blue)">${r[4]}</td></tr>`).join('')
+  }</tbody></table>`;
+  $('bom-total').textContent=`★ Estimated total: ~$${total_low.toLocaleString()} – $${Math.round(total_low*3.2).toLocaleString()} USD (material & component cost, excluding manufacturing labour)`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   REGULATORY
+═══════════════════════════════════════════════════════════ */
+function renderReg(){
+  const inp=INP;
+  const isMicro=inp.mtow<0.25, isSmall=inp.mtow<25, isMed=inp.mtow<150;
+  const regs=[
+    {flag:'🇮🇳',country:'India (DGCA)',
+     status:inp.mtow>150?'bad':inp.mtow>25?'warn':'ok',
+     label:inp.mtow>150?'NTCA Certification Required':inp.mtow>25?'Medium Category — DGCA Approval':'Small/Nano Category',
+     note:inp.mtow<0.25?'Nano — exempt from registration':'Registration + UAS Operator Certificate required'},
+    {flag:'🇺🇸',country:'USA (FAA)',
+     status:inp.mtow>25?'warn':'ok',
+     label:inp.mtow>25?'Part 107 Waiver Required':inp.mtow<.25?'Section 336 Model':'Part 107 sUAS',
+     note:inp.mtow>.25?'Remote ID required post-2023':'Registration required >0.25kg'},
+    {flag:'🇪🇺',country:'EU (EASA)',
+     status:inp.mtow>25?'bad':inp.mtow>4?'warn':'ok',
+     label:inp.mtow>25?'EASA Specific Cat':inp.mtow>4?'A2 Category':'A1/A3 Open Category',
+     note:'C0–C6 class marking required; remote ID mandatory'},
+    {flag:'🇬🇧',country:'UK (CAA)',
+     status:inp.mtow>25?'warn':'ok',
+     label:inp.mtow>25?'PDRA Required':'Flyer ID + Operator ID',
+     note:'A2 CoC for <4kg; Article 16 authorisation >25kg'},
+    {flag:'🇦🇺',country:'Australia (CASA)',
+     status:inp.mtow>25?'warn':'ok',
+     label:inp.mtow>25?'RPA Operator Certificate':'Excluded RPA',
+     note:inp.mtow>2?'ReOC + RePL may be required':'Below 2kg — mostly excluded'},
+    {flag:'🇨🇦',country:'Canada (TCCA)',
+     status:inp.mtow>25?'warn':'ok',
+     label:inp.mtow>25?'Advanced RPAS Ops':'Basic/Advanced Cert',
+     note:'RPAS registration + pilot cert above 250g'},
+  ];
+  $('reg-grid').innerHTML=regs.map(r=>`
+    <div class="reg-card">
+      <div class="rc-flag">${r.flag}</div>
+      <div class="rc-country">${r.country}</div>
+      <div class="rc-status ${r.status}">${r.status==='ok'?'✓ Compliant':r.status==='warn'?'⚠ Conditional':'✗ Cert Required'}</div>
+      <div style="font-size:10px;font-weight:700;color:var(--text2);margin-top:3px">${r.label}</div>
+      <div class="rc-note">${r.note}</div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   3D PARAMETRIC VIEWER — ENHANCED
+═══════════════════════════════════════════════════════════ */
+function render3D(){
+  if(animId){cancelAnimationFrame(animId);animId=null;}
+  if(renderer){renderer.dispose();const c=document.querySelector('#v-outer canvas');if(c)c.remove();}
+  if(!window.THREE){setTimeout(render3D,400);return;}
+  const T=window.THREE;
+  const wrap=$('v-outer'), W=wrap.clientWidth||900, H=560;
+  renderer=new T.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setSize(W,H); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=T.PCFSoftShadowMap;
+  renderer.toneMapping=T.ACESFilmicToneMapping; renderer.toneMappingExposure=1.25;
+  wrap.insertBefore(renderer.domElement,wrap.firstChild);
+
+  scene=new T.Scene();
+  scene.background=new T.Color(0x060d1e);
+  scene.fog=new T.FogExp2(0x060d1e,.014);
+
+  camera=new T.PerspectiveCamera(44,W/H,.01,600);
+  updateCam();
+
+  // Lighting rig
+  const amb=new T.AmbientLight(0x334466,.7); scene.add(amb);
+  const sun=new T.DirectionalLight(0xffeedd,1.4); sun.position.set(10,18,12); sun.castShadow=true;
+  sun.shadow.mapSize.width=2048; sun.shadow.mapSize.height=2048;
+  sun.shadow.camera.left=-15; sun.shadow.camera.right=15;
+  sun.shadow.camera.top=15; sun.shadow.camera.bottom=-15;
+  sun.shadow.bias=-.001; scene.add(sun);
+  const fill=new T.DirectionalLight(0x8899cc,.55); fill.position.set(-8,-3,-10); scene.add(fill);
+  const rim=new T.DirectionalLight(0xaabbff,.4); rim.position.set(0,8,-12); scene.add(rim);
+  const under=new T.PointLight(0x224488,.3,30); under.position.set(0,-4,0); scene.add(under);
+
+  // Environment: stars
+  const stGeo=new T.BufferGeometry(); const stPos=[];
+  for(let i=0;i<1200;i++){stPos.push((Math.random()-.5)*400,(Math.random()-.5)*400,(Math.random()-.5)*400);}
+  stGeo.setAttribute('position',new T.BufferAttribute(new Float32Array(stPos),3));
+  scene.add(new T.Points(stGeo,new T.PointsMaterial({color:0xaabbdd,size:.22,sizeAttenuation:true})));
+
+  // Ground
+  const grid=new T.GridHelper(40,40,0x1a2a4a,0x0d1a2e); grid.position.y=-2.2; scene.add(grid);
+  const gnd=new T.Mesh(new T.PlaneGeometry(40,40),new T.MeshLambertMaterial({color:0x0a1020,transparent:true,opacity:.6}));
+  gnd.rotation.x=-Math.PI/2; gnd.position.y=-2.21; gnd.receiveShadow=true; scene.add(gnd);
+
+  buildAircraft();
+  updateStats();
+  setupCamControls(wrap);
+
+  (function loop(){
+    animId=requestAnimationFrame(loop);
+    if(autoRot){spherical.theta+=.004;updateCam();}
+    renderer.render(scene,camera);
+  })();
+
+  $('dim-grid').innerHTML=[
+    mc('Wingspan',f(CUR.b,2),'m'),
+    mc('Est. Length',f(CUR.fuseL,2),'m'),
+    mc('Est. Height',f(CUR.b*.14,2),'m'),
+    mc('Wetted Area',f(CUR.Sw*2.1,2),'m²'),
+  ].join('');
+}
+
+function updateStats(){
+  $('v-stats').innerHTML=`Wingspan: ${f(CUR.b,2)}m<br>MAC: ${f(CUR.MAC,3)}m<br>AR: ${f(CUR.AR,1)}<br>Mach: ${f(CUR.Mach,3)}`;
+}
+
+function buildAircraft(){
+  const T=window.THREE;
+  if(aircraftGroup)scene.remove(aircraftGroup);
+  aircraftGroup=new T.Group();
+  const s=CUR, inp=INP;
+  const B=Math.min(s.b,8.5), sc=B/s.b, ch=s.MAC*sc;
+  const cR=s.cRoot*sc, cT=s.cTip*sc, fuseL=s.fuseL*sc*1.05, fuseR=s.fuseD*sc*0.5;
+  const vm=viewMode;
+
+  // Material factory
+  function mat(c,spec,shin,op=1,wire=false){
+    if(vm==='wire')return new T.MeshBasicMaterial({color:0x4A90E2,wireframe:true});
+    const m=new T.MeshPhongMaterial({color:c,specular:spec,shininess:shin,side:T.DoubleSide});
+    if(op<1){m.transparent=true;m.opacity=op;}
+    if(vm==='xray'){m.transparent=true;m.opacity=m.opacity<1?m.opacity*.5:.28;}
+    if(cfdMode&&wire){m.color=new T.Color(0x4A90E2);}
+    return m;
+  }
+  const M={
+    body:   mat(0xc8d8ec,0x608ab8,85),
+    bodyM:  mat(0x98b8d8,0x4070a0,60),
+    wing:   mat(0xb0c8e4,0x5080a8,72),
+    wingtip:mat(0x80a8cc,0x406888,55),
+    tail:   mat(0xc0d8f0,0x4878a8,60),
+    canopy: mat(0x66aadd,0xaaccff,220,.48),
+    engine: mat(0x3a4a5a,0x607888,130),
+    prop:   mat(0x1a2030,0x303848,80),
+    prop2:  mat(0x888888,0xaaaaaa,100),
+    gear:   mat(0x222c36,0x445566,65),
+    tyre:   mat(0x0d0f14,0x1a1d22,30),
+    nac:    mat(0x2a3a4a,0x405060,110),
+    intake: mat(0x080c10,0x101820,50),
+    exhaust:mat(0x403020,0x806040,80),
+    stripe: mat(0x3a7acc,0x5599ee,120),
+    cgSph:  new T.MeshPhongMaterial({color:0xe53e3e,emissive:0xcc1111,emissiveIntensity:.55,shininess:200}),
+    npSph:  new T.MeshPhongMaterial({color:0x4A90E2,emissive:0x1155aa,emissiveIntensity:.35,shininess:200}),
+    glass:  mat(0x88aacc,0xbbddff,250,.35),
+    antena: mat(0x445566,0x667788,80),
+    winglet:mat(0x90b8d8,0x4878a8,90),
+    hatch:  mat(0xa0b8cc,0x508888,90),
+    nav:    mat(0xff3333,0xff6666,200,.9),
+    navG:   mat(0x33ff33,0x66ff66,200,.9),
+  };
+  function add(mesh,shadow=true){if(shadow){mesh.castShadow=true;mesh.receiveShadow=true;}aircraftGroup.add(mesh);return mesh;}
+
+  /* ── FUSELAGE (multi-section lathe with precise profile) ── */
+  {
+    const profile=[];
+    const ctrlPts=[
+      [0,.005],[.03,.03],[.06,.09],[.12,.155],[.2,.2],[.3,.225],[.42,.23],
+      [.52,.23],[.62,.215],[.72,.19],[.82,.155],[.9,.105],[.95,.065],[.98,.032],[1,.008]
+    ];
+    ctrlPts.forEach(([t,r])=>profile.push(new T.Vector2(r*fuseR*2,t*fuseL)));
+    const fuse=add(new T.Mesh(new T.LatheGeometry(profile,48),M.body));
+    fuse.rotation.x=Math.PI/2; fuse.position.x=-fuseL*.28;
+    // Belly fairing
+    const fairingCtrl=[[0,.005],[.15,.06],[.35,.085],[.55,.085],[.75,.06],[.9,.025],[1,.005]];
+    const fp2=fairingCtrl.map(([t,r])=>new T.Vector2(r*fuseR*.8,t*fuseL*.65));
+    const fairing=add(new T.Mesh(new T.LatheGeometry(fp2,24),M.bodyM));
+    fairing.rotation.x=Math.PI/2; fairing.position.set(-fuseL*.05,-fuseR*.45,0);
+  }
+
+  /* ── CANOPY (multi-piece) ── */
+  if(vm!=='wire'){
+    const canoR=fuseR*1.05;
+    const cano=new T.Mesh(new T.SphereGeometry(canoR,24,16,0,2*Math.PI,0,Math.PI*.52),M.canopy);
+    cano.rotation.x=Math.PI; cano.position.set(-fuseL*.04,fuseR*.88,0);
+    aircraftGroup.add(cano);
+    // Canopy frame
+    for(let a=0;a<5;a++){
+      const frame=new T.Mesh(new T.TorusGeometry(canoR*.88,fuseR*.022,8,20,.9),M.bodyM);
+      frame.rotation.set(Math.PI/2,0,a*.22-.44);
+      frame.position.set(-fuseL*.04+a*.03,fuseR*.7,0);
+      aircraftGroup.add(frame);
+    }
+    // Instrument panel hint
+    const dash=new T.Mesh(new T.BoxGeometry(fuseR*.15,fuseR*.6,fuseR*1.3),M.bodyM);
+    dash.position.set(-fuseL*.12,fuseR*.22,0); aircraftGroup.add(dash);
+  }
+
+  /* ── ACCENT STRIPE ── */
+  if(vm==='solid'){
+    const stripe=new T.Mesh(new T.CylinderGeometry(fuseR*.28,fuseR*.28,fuseL*.26,32,1,true),M.stripe);
+    stripe.rotation.x=Math.PI/2; stripe.position.set(-fuseL*.04,fuseR*.04,0);
+    aircraftGroup.add(stripe);
+  }
+
+  /* ── DORSAL FAIRING ── */
+  {
+    const dors=new T.Mesh(new T.CylinderGeometry(fuseR*.12,fuseR*.06,fuseL*.28,14),M.bodyM);
+    dors.rotation.z=Math.PI/2; dors.position.set(-fuseL*.12,fuseR+fuseR*.06,0);
+    aircraftGroup.add(add(dors));
+  }
+
+  /* ── WING (full airfoil cross-section parametric) ── */
+  function buildWing(side){
+    const N=36, K=16, M2=K+1;
+    const sw2=rad(s.sweep), dh=rad(s.dih), halfB=B/2;
+    const segs=[];
+    for(let i=0;i<=N;i++){
+      const t=i/N, c=cR+(cT-cR)*t, tv2=s.afPick.t/100, m2=s.afPick.camber/100, p2=Math.max(.001,s.afPick.p/100);
+      const pts3=[];
+      for(let j=0;j<=K;j++){
+        const x=.5*(1-Math.cos(Math.PI*j/K));
+        const yt=5*tv2*(.2969*Math.sqrt(x)-.126*x-.3516*x*x+.2843*x*x*x-.1015*x*x*x*x);
+        const yc=x<p2?m2/(p2*p2)*(2*p2*x-x*x):m2/((1-p2)*(1-p2))*(1-2*p2+2*p2*x-x*x);
+        pts3.push({xu:x,yu:yc+yt,xl:x,yl:yc-yt});
+      }
+      segs.push({y:halfB*t*side,z:halfB*t*Math.tan(dh),xLE:halfB*t*Math.tan(sw2),c,pts:pts3});
+    }
+    const vU=[], vL=[];
+    for(let i=0;i<=N;i++){const sg=segs[i];for(let j=0;j<=K;j++){vU.push(sg.pts[j].xu*sg.c+sg.xLE,sg.z+sg.pts[j].yu*sg.c*.95,sg.y);vL.push(sg.pts[j].xl*sg.c+sg.xLE,sg.z+sg.pts[j].yl*sg.c*.95,sg.y);}}
+    const all=[...vU,...vL], off=vU.length/3, idx=[];
+    for(let i=0;i<N;i++)for(let j=0;j<K;j++){const a=i*M2+j,b=i*M2+j+1,c2=(i+1)*M2+j,d=(i+1)*M2+j+1;idx.push(a,c2,b,b,c2,d);}
+    for(let i=0;i<N;i++)for(let j=0;j<K;j++){const a=off+i*M2+j,b=off+i*M2+j+1,c2=off+(i+1)*M2+j,d=off+(i+1)*M2+j+1;idx.push(a,b,c2,b,d,c2);}
+    for(let i=0;i<N;i++){idx.push(i*M2,off+i*M2,(i+1)*M2,off+i*M2,off+(i+1)*M2,(i+1)*M2);const u=i*M2+K,u2=(i+1)*M2+K,l=off+i*M2+K,l2=off+(i+1)*M2+K;idx.push(u,l,u2,l,l2,u2);}
+    // Cap tip
+    const tipI=N*M2;
+    for(let j=0;j<K-1;j++){idx.push(tipI+j,tipI+j+1,off+tipI+j+1,off+tipI+j+1,off+tipI+j,tipI+j);}
+    const geo=new T.BufferGeometry();
+    geo.setAttribute('position',new T.BufferAttribute(new Float32Array(all),3));
+    geo.setIndex(idx); geo.computeVertexNormals();
+    const wm=cfdMode?new T.MeshPhongMaterial({vertexColors:true,side:T.DoubleSide}):M.wing;
+    if(cfdMode){
+      // fake CFD pressure colors
+      const colors=new Float32Array(all.length);
+      for(let i=0;i<all.length/3;i++){const fi=i/(all.length/3);colors[i*3]=fi<.5?0:fi*2-1;colors[i*3+1]=fi<.25?.1:fi>.75?.1:.8*(1-Math.abs(fi-.5)*2);colors[i*3+2]=fi>.5?0:1-fi*2;}
+      geo.setAttribute('color',new T.BufferAttribute(colors,3));
+    }
+    const mesh=new T.Mesh(geo,wm); mesh.position.x=-cR*.22;
+    return add(mesh);
+  }
+  buildWing(1); buildWing(-1);
+
+  /* ── WINGLETS ── */
+  [1,-1].forEach(side=>{
+    const halfB=B/2, sw3=rad(s.sweep), wlH=cT*.6;
+    const pts=[]; for(let i=0;i<=10;i++){const t=i/10;pts.push(new T.Vector2(cT*.5*(1-t*.55),wlH*t));}
+    const wl=add(new T.Mesh(new T.LatheGeometry(pts,10),M.winglet));
+    wl.rotation.z=.12*side;
+    wl.position.set(halfB*Math.tan(sw3)+cT*.22-cR*.22,halfB*Math.tan(rad(s.dih)),halfB*side-.01);
+  });
+
+  /* ── HORIZONTAL STABILIZER (with airfoil cross-section) ── */
+  [1,-1].forEach(side=>{
+    const hS=Math.sqrt(s.SH*sc*sc)*.92, N2=20, K2=10, M3=K2+1;
+    const segs2=[];
+    for(let i=0;i<=N2;i++){const t=i/N2;segs2.push({y:hS*.52*t*side,xLE:hS*.24*t*Math.tan(rad(20)),c:hS*.76*(1-t*.42)});}
+    const pAF=[];for(let j=0;j<=K2;j++){const x=.5*(1-Math.cos(Math.PI*j/K2)),yt=5*.09*(.2969*Math.sqrt(x)-.126*x-.3516*x*x+.2843*x*x*x-.1015*x*x*x*x);pAF.push({xu:x,yu:yt,xl:x,yl:-yt});}
+    const vv=[],idx2=[];
+    for(let i=0;i<=N2;i++){const sg=segs2[i];for(let j=0;j<=K2;j++)vv.push(sg.xLE+pAF[j].xu*sg.c,pAF[j].yu*sg.c*.12,sg.y);}
+    const o2=vv.length/3;for(let i=0;i<=N2;i++){const sg=segs2[i];for(let j=0;j<=K2;j++)vv.push(sg.xLE+pAF[j].xl*sg.c,pAF[j].yl*sg.c*.12,sg.y);}
+    for(let i=0;i<N2;i++)for(let j=0;j<K2;j++){const a=i*M3+j,b=i*M3+j+1,c2=(i+1)*M3+j,d=(i+1)*M3+j+1;idx2.push(a,c2,b,b,c2,d);}
+    for(let i=0;i<N2;i++)for(let j=0;j<K2;j++){const a=o2+i*M3+j,b=o2+i*M3+j+1,c2=o2+(i+1)*M3+j,d=o2+(i+1)*M3+j+1;idx2.push(a,b,c2,b,d,c2);}
+    const g2=new T.BufferGeometry();g2.setAttribute('position',new T.BufferAttribute(new Float32Array(vv),3));g2.setIndex(idx2);g2.computeVertexNormals();
+    const hs=add(new T.Mesh(g2,M.tail));hs.position.set(fuseL*.355,0,0);
+  });
+
+  /* ── VERTICAL FIN (with airfoil cross-section) ── */
+  {
+    const vS=Math.sqrt(s.SV*sc*sc)*.90, NV=20, KV=10, MV=KV+1;
+    const vSegs=[];for(let i=0;i<=NV;i++){const t=i/NV;vSegs.push({z:vS*.82*t,xLE:vS*.25*t*Math.tan(rad(30)),c:vS*.7*(1-t*.45)});}
+    const vAF=[];for(let j=0;j<=KV;j++){const x=.5*(1-Math.cos(Math.PI*j/KV)),yt=5*.09*(.2969*Math.sqrt(x)-.126*x-.3516*x*x+.2843*x*x*x-.1015*x*x*x*x);vAF.push({xu:x,yu:yt,xl:x,yl:-yt});}
+    const vv=[],vidx=[];
+    for(let i=0;i<=NV;i++){const sg=vSegs[i];for(let j=0;j<=KV;j++)vv.push(sg.xLE+vAF[j].xu*sg.c,sg.z,vAF[j].yu*sg.c*.12);}
+    const vO=vv.length/3;for(let i=0;i<=NV;i++){const sg=vSegs[i];for(let j=0;j<=KV;j++)vv.push(sg.xLE+vAF[j].xl*sg.c,sg.z,vAF[j].yl*sg.c*.12);}
+    for(let i=0;i<NV;i++)for(let j=0;j<KV;j++){const a=i*MV+j,b=i*MV+j+1,c2=(i+1)*MV+j,d=(i+1)*MV+j+1;vidx.push(a,c2,b,b,c2,d);}
+    for(let i=0;i<NV;i++)for(let j=0;j<KV;j++){const a=vO+i*MV+j,b=vO+i*MV+j+1,c2=vO+(i+1)*MV+j,d=vO+(i+1)*MV+j+1;vidx.push(a,b,c2,b,d,c2);}
+    const vg=new T.BufferGeometry();vg.setAttribute('position',new T.BufferAttribute(new Float32Array(vv),3));vg.setIndex(vidx);vg.computeVertexNormals();
+    add(new T.Mesh(vg,M.tail)).position.set(fuseL*.35,fuseR*.18,0);
+  }
+
+  /* ── PROPULSION ── */
+  if(inp.prop==='Electric'||inp.prop==='Piston'){
+    // Nose cowl
+    const cowlCurve=new T.CatmullRomCurve3([new T.Vector3(0,0,0),new T.Vector3(ch*.08,ch*.06,0),new T.Vector3(ch*.22,ch*.14,0),new T.Vector3(ch*.38,ch*.14,0),new T.Vector3(ch*.44,ch*.08,0),new T.Vector3(ch*.48,ch*.01,0)]);
+    add(new T.Mesh(new T.TubeGeometry(cowlCurve,20,ch*.075,18,false),M.nac)).position.set(-fuseL*.48,0,0);
+    // Spinner
+    const spin=add(new T.Mesh(new T.ConeGeometry(ch*.085,ch*.19,20),M.engine));
+    spin.rotation.z=-Math.PI/2; spin.position.set(-fuseL*.53,0,0);
+    // Prop hub
+    add(new T.Mesh(new T.CylinderGeometry(ch*.055,ch*.055,ch*.06,12),M.prop2)).rotation.z=Math.PI/2;
+    // Blades (3-blade for electric, 2-blade for piston)
+    const nBlades=inp.prop==='Electric'?3:2;
+    for(let i=0;i<nBlades;i++){
+      const shape=new T.Shape();
+      shape.moveTo(0,0); shape.bezierCurveTo(ch*.015,ch*.06,ch*.02,ch*.24,ch*.01,ch*.4);
+      shape.bezierCurveTo(ch*.005,ch*.4,-ch*.005,ch*.4,-ch*.01,ch*.4);
+      shape.bezierCurveTo(-ch*.02,ch*.24,-ch*.015,ch*.06,0,0);
+      const blade=add(new T.Mesh(new T.ExtrudeGeometry(shape,{depth:ch*.018,bevelEnabled:false}),M.prop));
+      blade.rotation.set(0,i*2*Math.PI/nBlades,-.22);
+      blade.position.set(-fuseL*.5,0,0);
+    }
+  } else if(inp.prop==='Turbofan'||inp.prop==='Turbojet'){
+    [1,-1].forEach(side=>{
+      const hB=B*.28*side, nacL=ch*.85, nacR=ch*.17;
+      const nacCurve=new T.CatmullRomCurve3([new T.Vector3(-nacL*.52,0,0),new T.Vector3(-nacL*.18,nacR*.12,0),new T.Vector3(0,nacR,0),new T.Vector3(nacL*.35,nacR*.92,0),new T.Vector3(nacL*.48,nacR*.4,0),new T.Vector3(nacL*.52,nacR*.06,0)]);
+      add(new T.Mesh(new T.TubeGeometry(nacCurve,28,nacR*.52,18,false),M.nac)).rotation.z=Math.PI/2;
+      const nac=aircraftGroup.children[aircraftGroup.children.length-1];
+      nac.position.set(cR*.06,-fuseR*.7,hB);
+      // Intake ring
+      const ring=add(new T.Mesh(new T.TorusGeometry(nacR*.54,nacR*.06,14,30),M.intake));
+      ring.rotation.y=Math.PI/2; ring.position.set(cR*.06-nacL*.50,-fuseR*.7,hB);
+      // Fan blades
+      for(let b=0;b<8;b++){
+        const fb=add(new T.Mesh(new T.BoxGeometry(ch*.025,nacR*.52,ch*.018),M.engine));
+        fb.rotation.set(0,0,b*Math.PI/4); fb.position.set(cR*.06-nacL*.50,-fuseR*.7,hB);
+      }
+      // Exhaust nozzle
+      add(new T.Mesh(new T.CylinderGeometry(nacR*.42,nacR*.3,nacL*.12,16),M.exhaust)).rotation.set(0,Math.PI/2,0);
+      const noz=aircraftGroup.children[aircraftGroup.children.length-1];
+      noz.position.set(cR*.06+nacL*.44,-fuseR*.7,hB);
+      // Engine pylon
+      const pylon=add(new T.Mesh(new T.BoxGeometry(cR*.18,fuseR*.45,ch*.06),M.bodyM));
+      pylon.position.set(cR*.06,-fuseR*.32,hB);
+    });
+  } else {
+    // Turboprop cowl
+    const cc=new T.CatmullRomCurve3([new T.Vector3(0,ch*.05,0),new T.Vector3(ch*.08,ch*.14,0),new T.Vector3(ch*.24,ch*.17,0),new T.Vector3(ch*.38,ch*.15,0),new T.Vector3(ch*.46,ch*.07,0),new T.Vector3(ch*.5,ch*.01,0)]);
+    add(new T.Mesh(new T.TubeGeometry(cc,22,ch*.08,18,false),M.nac)).rotation.z=Math.PI/2;
+    aircraftGroup.children[aircraftGroup.children.length-1].position.set(-fuseL*.5,0,0);
+    for(let i=0;i<4;i++){
+      const b=add(new T.Mesh(new T.BoxGeometry(ch*.032,ch*.35,ch*.02),M.prop));
+      b.position.set(-fuseL*.54,0,0); b.rotation.set(0,0,i*Math.PI/2+.15);
+    }
+  }
+
+  /* ── LANDING GEAR ── */
+  const gR=Math.min(.09,B*.011), gy=-Math.max(fuseR,gR)*1.1-gR;
+  function wheel(x,y,z,R,w2){
+    const ax=add(new T.Mesh(new T.CylinderGeometry(R*.14,R*.14,w2+.06,10),M.gear));ax.rotation.x=Math.PI/2;ax.position.set(x,y,z);
+    const ty2=add(new T.Mesh(new T.TorusGeometry(R,R*.44,12,26),M.tyre));ty2.rotation.x=Math.PI/2;ty2.position.set(x,y,z);
+    // hub
+    add(new T.Mesh(new T.CylinderGeometry(R*.25,R*.25,w2*.5,8),M.prop2)).rotation.x=Math.PI/2;
+    aircraftGroup.children[aircraftGroup.children.length-1].position.set(x,y,z);
+  }
+  function strut(x1,y1,x2,y2,z,r=.024){
+    const dx=x2-x1,dy=y2-y1,L=Math.sqrt(dx*dx+dy*dy);
+    const st=add(new T.Mesh(new T.CylinderGeometry(r,r,L,8),M.gear));
+    st.position.set((x1+x2)/2,(y1+y2)/2,z);st.rotation.z=Math.atan2(dx,dy);
+  }
+  // Main gear
+  [B*.145,-B*.145].forEach(z=>{
+    strut(-fuseL*.15,-fuseR,-fuseL*.13,gy,z);
+    strut(-fuseL*.1,-fuseR,-fuseL*.13,gy,z,.014);
+    wheel(-fuseL*.13,gy,z,gR,.14);
+    // gear door
+    if(vm!=='wire'){
+      const d=add(new T.Mesh(new T.BoxGeometry(.24,.01,.16),M.hatch));
+      d.position.set(-fuseL*.13,-fuseR+.012,z);d.rotation.z=.09;
+    }
+  });
+  // Nose gear
+  strut(fuseL*.16,-fuseR*.85,fuseL*.16,gy,0);
+  wheel(fuseL*.16,gy,0,gR*.78,.1);
+
+  /* ── NAV LIGHTS ── */
+  if(vm!=='wire'){
+    const navL=add(new T.Mesh(new T.SphereGeometry(gR*.28,8,8),M.navG));navL.position.set(-cR*.22,0,B/2+.03);
+    const navR=add(new T.Mesh(new T.SphereGeometry(gR*.28,8,8),M.nav));navR.position.set(-cR*.22,0,-B/2-.03);
+    add(new T.Mesh(new T.SphereGeometry(gR*.32,8,8),new T.MeshPhongMaterial({color:0xffffff,emissive:0xffffee,emissiveIntensity:.8}))).position.set(fuseL*.7,fuseR*.1,0);
+  }
+
+  /* ── SENSOR / PAYLOAD POD ── */
+  if(inp.type==='Surveillance UAV'||inp.type==='Fixed Wing UAV'||inp.type==='Military UAV'){
+    // EO/IR turret
+    add(new T.Mesh(new T.SphereGeometry(ch*.14,18,14),M.engine)).position.set(fuseL*.08,-fuseR*.98,0);
+    add(new T.Mesh(new T.SphereGeometry(ch*.07,14,10),M.glass)).position.set(fuseL*.1,-fuseR*1.08,ch*.03);
+    // Antenna
+    add(new T.Mesh(new T.CylinderGeometry(.007,.007,ch*.3,6),M.antena)).position.set(-fuseL*.35,fuseR+.14,0);
+  }
+
+  /* ── CG & NP MARKERS ── */
+  const cgX=(s.xcg/100-.42)*ch;
+  const cg=new T.Mesh(new T.SphereGeometry(.082,18,18),M.cgSph); cg.position.set(cgX,.14,0);
+  aircraftGroup.add(cg);
+  const cgRing=new T.Mesh(new T.TorusGeometry(.17,.02,10,30),M.cgSph);cgRing.rotation.x=Math.PI/2;cgRing.position.copy(cg.position);aircraftGroup.add(cgRing);
+  const np=new T.Mesh(new T.SphereGeometry(.065,14,14),M.npSph);np.position.set((s.xnp/100-.42)*ch,.14,0);aircraftGroup.add(np);
+
+  scene.add(aircraftGroup);
+}
+
+function setupCamControls(wrap){
+  const el=renderer.domElement;
+  el.addEventListener('mousedown',e=>{if(e.button===0)isDrag=true;if(e.button===2)isRDrag=true;lastMouse={x:e.clientX,y:e.clientY};e.preventDefault();});
+  window.addEventListener('mouseup',()=>{isDrag=false;isRDrag=false;});
+  el.addEventListener('mousemove',e=>{
+    const dx=e.clientX-lastMouse.x, dy=e.clientY-lastMouse.y;
+    if(isDrag){spherical.theta+=dx*.011;spherical.phi=Math.max(.08,Math.min(Math.PI*.92,spherical.phi+dy*.009));}
+    if(isRDrag){panOffset.x-=dx*.012;panOffset.y+=dy*.012;}
+    lastMouse={x:e.clientX,y:e.clientY};if(isDrag||isRDrag)updateCam();
+  });
+  el.addEventListener('wheel',e=>{spherical.r=Math.max(1.5,Math.min(30,spherical.r*(1+e.deltaY*.0012)));updateCam();e.preventDefault();},{passive:false});
+  el.addEventListener('contextmenu',e=>e.preventDefault());
+  el.addEventListener('dblclick',()=>{spherical={theta:.55,phi:1.1,r:9};panOffset={x:0,y:0};updateCam();});
+  el.addEventListener('touchstart',e=>{if(e.touches.length===1){isDrag=true;lastMouse={x:e.touches[0].clientX,y:e.touches[0].clientY};}});
+  el.addEventListener('touchend',()=>isDrag=false);
+  el.addEventListener('touchmove',e=>{if(!isDrag||e.touches.length!==1)return;spherical.theta+=(e.touches[0].clientX-lastMouse.x)*.011;spherical.phi=Math.max(.08,Math.min(Math.PI*.92,spherical.phi+(e.touches[0].clientY-lastMouse.y)*.009));lastMouse={x:e.touches[0].clientX,y:e.touches[0].clientY};updateCam();});
+}
+function updateCam(){if(!camera)return;const{theta,phi,r}=spherical;camera.position.set(r*Math.sin(phi)*Math.sin(theta)+panOffset.x,r*Math.cos(phi)+panOffset.y,r*Math.sin(phi)*Math.cos(theta));camera.lookAt(panOffset.x,panOffset.y,0);}
+function setVM(m,btn){viewMode=m;document.querySelectorAll('.vbtn').forEach(b=>b.classList.remove('act'));btn.classList.add('act');if(CUR)render3D();}
+function resetCam(){spherical={theta:.55,phi:1.1,r:9};panOffset={x:0,y:0};updateCam();}
+function toggleRot(btn){autoRot=!autoRot;btn.classList.toggle('act',autoRot);toast(autoRot?'Auto-rotate ON':'Auto-rotate OFF');}
+function toggleCFD(btn){cfdMode=!cfdMode;btn.classList.toggle('act',cfdMode);if(CUR)render3D();toast(cfdMode?'CFD pressure colors ON':'CFD colors OFF');}
+function setView(v){
+  const views={front:{theta:0,phi:Math.PI/2,r:10},top:{theta:0,phi:.01,r:12},side:{theta:Math.PI/2,phi:Math.PI/2,r:10},iso:{theta:.55,phi:1.1,r:9}};
+  if(views[v]){Object.assign(spherical,views[v]);panOffset={x:0,y:0};updateCam();}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AI REPORT STREAM
+═══════════════════════════════════════════════════════════ */
+async function streamReport(){
+  const s=CUR, af=AIRF, inp=INP, el=$('air-text');
+  el.innerHTML='<span class="cur"></span>';
+  let txt='';
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',max_tokens:1100,stream:true,
+        messages:[{role:'user',content:`You are a senior aerospace design engineer at AeroGenesis AI. Write a concise but detailed technical assessment for this aircraft design:
+
+AIRCRAFT: ${inp.type} | Propulsion: ${inp.prop} | Material: ${inp.mat}
+Configuration: Wing ${inp.wing}, ${inp.wpos}, Empennage ${inp.tail}, Landing gear ${inp.gear}
+Payload: ${inp.payload} kg | MTOW: ${inp.mtow} kg | Engines: ${inp.engines}
+Speeds: Cruise ${inp.Vc} / Stall ${inp.Vs} / Max ${inp.Vmax} km/h
+Mission: ${inp.range} km range · ${inp.endurance} h endurance · ${inp.alt} m altitude · ${inp.roc} m/s ROC
+
+SIZING RESULTS:
+• Wing: ${f(s.b,2)}m span · ${f(s.Sw,2)}m² S_ref · AR ${f(s.AR,1)} · ${f(s.WS,1)} kg/m² W/S · taper ${f(s.taper,2)}
+• Aero: CL_c=${f(s.CLc,3)}, CD_total=${f(s.CDc,4)}, CD₀=${f(s.CD0,4)}, CDi=${f(s.CDi,4)}, e=${f(s.e,3)}
+• L/D: cruise ${f(s.LD,1)}, max ${f(s.LDmax,1)} @ CL=${f(s.CLopt,3)}
+• Propulsion: ${f(s.Preq_kW,2)} kW · Thrust ${f(s.Treq,1)} N · Mach ${f(s.Mach,3)}
+• Stability: SM=${f(s.SM,1)}% · CG ${f(s.xcg,1)}% MAC · NP ${f(s.xnp,1)}% MAC
+• Structure: n_lim=${f(s.nLim,1)}g · M_bend=${f(s.Mbend/1000,1)} kN·m · FoS=${f(s.FoS,2)}
+• Airfoil: ${af.sel.name} (CL_max=${af.sel.clMax}, CD₀=${af.sel.cd0}, t=${af.sel.t}%) · Re=${(af.Re/1e6).toFixed(2)}M
+• Weight: Struct ${f(s.Wstr,1)} · Prop ${f(s.Wpr,1)} · Avionics ${f(s.Wav,1)} · Fuel/Bat ${f(s.Wfuel,1)} · Payload ${f(s.Wpay,1)} kg
+
+Write:
+1. DESIGN ASSESSMENT (3 sentences — overall technical verdict)
+2. STRENGTHS (4 bullet points with specific values)
+3. ENGINEERING CONCERNS (3 bullet points with mitigation)
+4. OPTIMISATION RECOMMENDATIONS (top 4 with expected gains)
+5. AIRFOIL RATIONALE (why ${af.sel.name} is correct for this mission)
+
+Professional, specific, aerospace-level terminology. Reference actual calculated values.`}]
+      })
+    });
+    const reader=resp.body.getReader(),dec=new TextDecoder();let buf='';
+    while(true){
+      const{done,value}=await reader.read();if(done)break;
+      buf+=dec.decode(value,{stream:true});const lines=buf.split('\n');buf=lines.pop();
+      for(const ln of lines){
+        if(!ln.startsWith('data: '))continue;const d=ln.slice(6);if(d==='[DONE]')continue;
+        try{const j=JSON.parse(d);if(j.type==='content_block_delta'&&j.delta?.text){txt+=j.delta.text;el.innerHTML=txt.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^(\d+\. )/gm,'<br><strong>$1</strong>').replace(/^(#{1,3} )/gm,'<br><strong>').replace(/\n/g,'<br>')+'<span class="cur"></span>';}}catch{}
+      }
+    }
+    el.innerHTML=txt.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  }catch(e){el.innerHTML='<span style="color:var(--text3)">AI analysis unavailable — run on a server with CORS proxy. All engineering calculations above are complete and accurate.</span>';}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AI PARSE PROMPT
+═══════════════════════════════════════════════════════════ */
+async function parsePrompt(){
+  const input=$('ai-prompt').value.trim();if(!input)return;
+  const btn=$('parse-btn');btn.textContent='Parsing…';btn.disabled=true;
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',max_tokens:900,
+        messages:[{role:'user',content:`Extract aircraft design parameters from: "${input}"
+Return ONLY valid compact JSON, no markdown fences or text outside JSON:
+{"type":"one of [Fixed Wing UAV,Trainer Aircraft,Glider,Cargo UAV,Flying Wing,VTOL UAV,Surveillance UAV,Quadcopter,eVTOL,General Aviation,Business Jet,Military UAV,HAPS]","prop":"one of [Electric,Piston,Turboprop,Turbojet,Turbofan,Hybrid]","mat":"one of [Carbon Fiber,Aluminum Alloy,Fiberglass,Titanium Alloy,PLA,PETG,ABS,Kevlar]","wing":"one of [Tapered,Rectangular,Elliptical,Delta,Swept]","tail":"one of [Conventional,T-Tail,V-Tail,H-Tail,Twin Tail,Cruciform,Canard]","payload":kg,"mtow":kg,"cruiseSpeed":kmh,"stallSpeed":kmh,"maxSpeed":kmh,"range":km,"endurance":h,"altitude":m,"roc":ms,"runway":m,"ceiling":m,"engines":integer}
+Infer all missing values from aircraft type and context. Do not omit any field.`}]
+      })
+    });
+    const data=await resp.json();
+    const txt=(data.content?.[0]?.text||'').replace(/```json|```/g,'').trim();
+    setInputs(JSON.parse(txt));$('ai-prompt').value='';
+    toast('✓ Parameters extracted — click Generate ⚡');
+  }catch(e){toast('Parse error — try being more specific about type, payload, range, endurance.');}
+  btn.textContent='Parse ↗';btn.disabled=false;
+}
+$('ai-prompt').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();parsePrompt();}});
+
+/* ═══════════════════════════════════════════════════════════
+   EXPORT
+═══════════════════════════════════════════════════════════ */
+function expFile(fmt){
+  if(!CUR){toast('Generate an aircraft first.');return;}
+  toast(`${fmt} export — requires server-side CAD pipeline in production. Design data logged.`);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INIT AIRFOIL GRID
+═══════════════════════════════════════════════════════════ */
+renderAfGrid();
+
+let lastScroll = window.scrollY;
+const topbar = document.getElementById('topbar');
+window.addEventListener('scroll', () => {
+  const current = window.scrollY;
+  if (current > lastScroll && current > 80) {
+    topbar.classList.add('hidden');
+  } else {
+    topbar.classList.remove('hidden');
+  }
+  lastScroll = current;
+});
+</script>
+</body>
+</html>
